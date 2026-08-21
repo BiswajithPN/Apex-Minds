@@ -133,32 +133,15 @@ const googleAuth = asyncHandler(async (req, res) => {
 
   let user = await User.findOne({ email: normalizedEmail });
 
-  // 1. LOGIN FLOW (isSignUp === false)
-  if (!isSignUp) {
-    if (!user) {
-      return sendError(
-        res,
-        404,
-        `No account found for ${normalizedEmail}. Please sign up first before logging in.`
-      );
-    }
-
+  if (user) {
+    // Existing user: Link Google ID and avatar if missing
     if (!user.google_id) {
       user.google_id = google_id;
       if (picture && !user.avatar) user.avatar = picture;
       await user.save();
     }
-  } 
-  // 2. SIGNUP FLOW (isSignUp === true)
-  else {
-    if (user) {
-      return sendError(
-        res,
-        400,
-        `An account with email ${normalizedEmail} already exists. Please sign in instead.`
-      );
-    }
-
+  } else {
+    // New user auto-provisioning
     const allowedRoles = ['jobseeker', 'employer'];
     const userRole = allowedRoles.includes(role) ? role : 'jobseeker';
     const randomHash = crypto.randomBytes(16).toString('hex');
@@ -170,6 +153,8 @@ const googleAuth = asyncHandler(async (req, res) => {
       avatar: picture || '',
       role: userRole,
       password: randomHash,
+      is_verified: true,
+      is_active: true,
     });
 
     if (userRole === 'jobseeker') {
@@ -178,7 +163,6 @@ const googleAuth = asyncHandler(async (req, res) => {
       await EmployerProfile.create({ userId: user._id, company_name: user.full_name });
     }
 
-    // Trigger welcome / confirmation email for new Google signup
     sendAccountConfirmationEmail(user.email, user.full_name);
   }
 
@@ -186,7 +170,7 @@ const googleAuth = asyncHandler(async (req, res) => {
 
   return sendSuccess(
     res,
-    isSignUp ? 201 : 200,
+    200,
     {
       token,
       user: {
@@ -197,7 +181,7 @@ const googleAuth = asyncHandler(async (req, res) => {
         avatar: user.avatar,
       },
     },
-    isSignUp ? 'Google registration successful' : 'Google login successful'
+    'Google authentication successful'
   );
 });
 
