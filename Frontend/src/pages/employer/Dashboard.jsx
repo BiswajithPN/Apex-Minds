@@ -57,31 +57,31 @@ export default function EmployerDashboard() {
 
   return (
     <div className="space-y-8 animate-fade-in w-full pb-20 font-sans text-slate-800">
-      {/* Welcome */}
-      <div className="gradient-hero rounded-3xl p-8 sm:p-10 text-white relative overflow-hidden shadow-xl shadow-accent-500/10">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+      {/* Light Emerald Fresh Header Banner */}
+      <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 rounded-3xl p-6 sm:p-10 !text-white relative overflow-hidden shadow-xl shadow-emerald-600/15">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-bold uppercase tracking-wider">
-            <Sparkles className="w-4 h-4 text-emerald-300" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-xs font-black uppercase tracking-wider text-white shadow-xs">
+            <Sparkles className="w-4 h-4 text-emerald-100" />
             Employer Recruiting Command Center
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight !text-white leading-tight">
             Hello, {user?.name?.split(' ')[0] || user?.full_name?.split(' ')[0] || 'Employer'} 👋
           </h1>
-          <p className="text-accent-100 text-base sm:text-lg max-w-2xl font-medium leading-relaxed">
-            Manage your open jobs, screen candidate resumes, and rank applicants with multi-criteria AI models.
+          <p className="!text-emerald-50 text-xs sm:text-base max-w-2xl font-medium leading-relaxed">
+            Manage your open jobs, review candidate applications, and rank applicants with explainable AI models.
           </p>
           <div className="pt-2 flex flex-wrap gap-3">
             <Link to="/employer/post-job">
-              <Button size="md" className="font-extrabold shadow-lg shadow-accent-500/25 text-sm">
-                <PlusCircle className="w-4 h-4 mr-2" />
+              <Button size="md" className="!bg-white hover:!bg-emerald-50 !text-emerald-900 font-black shadow-lg shadow-emerald-950/20 text-xs sm:text-sm">
+                <PlusCircle className="w-4 h-4 mr-2 text-emerald-700" />
                 Post New Job
               </Button>
             </Link>
-            <Link to="/employer/screener">
-              <Button variant="secondary" size="md" className="!bg-white/15 hover:!bg-white/25 !text-white !border-white/20 font-bold backdrop-blur-md text-sm">
-                <ShieldCheck className="w-4 h-4 mr-2 text-emerald-300" />
-                AI Screener & Batch ATS
+            <Link to="/employer/jobs">
+              <Button variant="secondary" size="md" className="!bg-white/20 hover:!bg-white/30 !text-white !border-white/30 font-extrabold backdrop-blur-md text-xs sm:text-sm">
+                <Briefcase className="w-4 h-4 mr-2 text-emerald-100" />
+                View Postings & Applicants
               </Button>
             </Link>
           </div>
@@ -113,9 +113,9 @@ export default function EmployerDashboard() {
       {/* Quick actions */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         {[
-          { to: '/employer/post-job', icon: PlusCircle, label: 'Post New Job', desc: 'Create job listing & AI rubric' },
+          { to: '/employer/post-job', icon: PlusCircle, label: 'Post New Job', desc: 'Create job listing & rubric' },
           { to: '/employer/jobs', icon: Settings, label: 'Manage Jobs', desc: 'Active postings & applicants' },
-          { to: '/employer/screener', icon: Sparkles, label: 'Bulk Resume Screener', desc: 'Screen resumes & rank candidates' },
+          { to: '/employer/company', icon: Sparkles, label: 'Company Profile', desc: 'Brand & organization setup' },
         ].map((action) => (
           <Link key={action.label} to={action.to}>
             <Card padding="lg" className="hover:border-accent-400 group transition-all shadow-sm bg-white border-2 border-slate-200/80">

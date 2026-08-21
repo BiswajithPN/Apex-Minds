@@ -23,16 +23,13 @@ import PostJob from '../pages/employer/PostJob';
 import ManageJobs from '../pages/employer/ManageJobs';
 import Applicants from '../pages/employer/Applicants';
 import CandidateProfile from '../pages/employer/CandidateProfile';
+import CandidateAnalysis from '../pages/employer/CandidateAnalysis';
 
 // Admin pages
 import AdminDashboard from '../pages/admin/Dashboard';
 import UserManagement from '../pages/admin/UserManagement';
 import FlaggedPostings from '../pages/admin/FlaggedPostings';
 import Analytics from '../pages/admin/Analytics';
-
-// Screener Suite (Merged Project 1)
-import ResumeScreener from '../pages/screener/ResumeScreener';
-import CandidateAnalysis from '../pages/employer/CandidateAnalysis';
 
 // Misc
 import NotFound from '../pages/NotFound';
@@ -44,7 +41,6 @@ export default function AppRoutes() {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/screener-demo" element={<div className="p-6 max-w-7xl mx-auto"><ResumeScreener /></div>} />
 
       {/* Protected — all roles */}
       <Route
@@ -87,7 +83,6 @@ export default function AppRoutes() {
       >
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<EmpDashboard />} />
-        <Route path="screener" element={<ResumeScreener />} />
         <Route path="company" element={<CompanyProfile />} />
         <Route path="post-job" element={<PostJob />} />
         <Route path="jobs" element={<ManageJobs />} />
@@ -108,7 +103,6 @@ export default function AppRoutes() {
       >
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="screener" element={<ResumeScreener />} />
         <Route path="users" element={<UserManagement />} />
         <Route path="flagged" element={<FlaggedPostings />} />
         <Route path="analytics" element={<Analytics />} />

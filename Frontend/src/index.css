@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── Accent: Deep Teal ── */
-  --color-accent-50: #effefa;
-  --color-accent-100: #c7fff2;
-  --color-accent-200: #90ffe6;
-  --color-accent-300: #51f7d6;
-  --color-accent-400: #1de4c1;
-  --color-accent-500: #0d9e8a;
-  --color-accent-600: #06a08a;
-  --color-accent-700: #0a806f;
-  --color-accent-800: #0d655a;
-  --color-accent-900: #10534b;
-  --color-accent-950: #03312e;
+  /* ── Accent: Fresh Vibrant Emerald / Mint Teal ── */
+  --color-accent-50: #ecfdf5;
+  --color-accent-100: #d1fae5;
+  --color-accent-200: #a7f3d0;
+  --color-accent-300: #6ee7b7;
+  --color-accent-400: #34d399;
+  --color-accent-500: #10b981;
+  --color-accent-600: #059669;
+  --color-accent-700: #047857;
+  --color-accent-800: #065f46;
+  --color-accent-900: #064e3b;
+  --color-accent-950: #022c22;
 
   /* ── Warn: Amber ── */
   --color-warn-50: #fffbeb;
@@ -100,7 +100,7 @@
   }
 
   html {
-    font-size: 17.5px;
+    font-size: 16.5px;
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -111,7 +111,7 @@
     font-family: var(--font-sans);
     background-color: #f8fafc;
     color: #0f172a;
-    line-height: 1.65;
+    line-height: 1.6;
     min-height: 100vh;
     font-size: 1rem;
     font-weight: 450;
@@ -151,27 +151,40 @@
 /* ── Utility classes ── */
 @layer utilities {
   .glass {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
 
   .glass-dark {
-    background: rgba(3, 49, 46, 0.85);
+    background: rgba(4, 120, 87, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
   }
 
   .gradient-accent {
-    background: linear-gradient(135deg, var(--color-accent-500), var(--color-accent-700));
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
   }
 
+  /* Fresh Vibrant Light Emerald Hero Gradient */
   .gradient-hero {
-    background: linear-gradient(135deg, var(--color-accent-950) 0%, var(--color-accent-800) 50%, var(--color-accent-600) 100%);
+    background: linear-gradient(135deg, #047857 0%, #059669 45%, #10b981 100%);
+    color: #ffffff !important;
+  }
+
+  .gradient-hero h1,
+  .gradient-hero h2,
+  .gradient-hero h3,
+  .gradient-hero h4 {
+    color: #ffffff !important;
+  }
+
+  .gradient-hero p {
+    color: rgba(236, 253, 245, 0.9) !important;
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, var(--color-accent-400), var(--color-accent-600));
+    background: linear-gradient(135deg, #059669, #10b981);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

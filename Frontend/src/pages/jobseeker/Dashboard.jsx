@@ -96,26 +96,26 @@ export default function JobSeekerDashboard() {
 
   return (
     <div className="space-y-8 animate-fade-in w-full pb-20 font-sans text-slate-800">
-      {/* Welcome banner */}
-      <div className="gradient-hero rounded-3xl p-8 sm:p-10 text-white relative overflow-hidden shadow-xl shadow-accent-500/10">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+      {/* Light Emerald Fresh Header Banner */}
+      <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 rounded-3xl p-6 sm:p-10 !text-white relative overflow-hidden shadow-xl shadow-emerald-600/15">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="relative z-10 space-y-3">
           {isWelcome && (
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/15 rounded-full text-xs font-bold mb-2 backdrop-blur-md">
-              <CheckCircle2 className="w-4 h-4 text-accent-300" />
-              <span className="text-white">Profile setup complete!</span>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/20 rounded-full text-xs font-black uppercase tracking-wider text-white backdrop-blur-md shadow-xs">
+              <CheckCircle2 className="w-4 h-4 text-emerald-100" />
+              <span>Profile setup complete!</span>
             </div>
           )}
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight !text-white leading-tight">
             Welcome back, {user?.name?.split(' ')[0] || user?.full_name?.split(' ')[0] || 'there'} 👋
           </h1>
-          <p className="text-accent-100 text-base sm:text-lg max-w-2xl font-medium leading-relaxed">
+          <p className="!text-emerald-50 text-xs sm:text-base max-w-2xl font-medium leading-relaxed">
             Your AI-assisted recruitment portal is active with explainable multi-criteria job matching.
           </p>
           <div className="pt-2">
             <Link to="/jobseeker/jobs">
-              <Button size="md" className="font-extrabold shadow-lg shadow-accent-500/25 text-sm">
-                <Search className="w-4 h-4 mr-2" />
+              <Button size="md" className="!bg-white hover:!bg-emerald-50 !text-emerald-900 font-black shadow-lg shadow-emerald-950/20 text-xs sm:text-sm">
+                <Search className="w-4 h-4 mr-2 text-emerald-700" />
                 Find Open Positions
               </Button>
             </Link>

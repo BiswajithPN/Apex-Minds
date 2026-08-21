@@ -14,9 +14,9 @@ import {
   Users,
   Flag,
   BarChart3,
-  ShieldCheck,
 } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
+import HireHubLogo from '../ui/HireHubLogo';
 
 const navConfig = {
   jobseeker: [
@@ -30,7 +30,6 @@ const navConfig = {
   ],
   employer: [
     { to: '/employer/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/employer/screener', icon: ShieldCheck, label: 'AI Screener & ATS' },
     { to: '/employer/company', icon: Building2, label: 'Company Profile' },
     { to: '/employer/post-job', icon: PlusCircle, label: 'Post Job' },
     { to: '/employer/jobs', icon: Briefcase, label: 'Manage Jobs' },
@@ -38,10 +37,9 @@ const navConfig = {
   ],
   admin: [
     { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/admin/screener', icon: ShieldCheck, label: 'AI Resume Screener' },
-    { to: '/admin/users', icon: Users, label: 'Users' },
-    { to: '/admin/flagged', icon: Flag, label: 'Flagged Posts' },
-    { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
+    { to: '/admin/users', icon: Users, label: 'User Directory & Control' },
+    { to: '/admin/flagged', icon: Flag, label: 'Flagged Job Postings' },
+    { to: '/admin/analytics', icon: BarChart3, label: 'System & Bias Analytics' },
     { to: '/change-password', icon: KeyRound, label: 'Change Password' },
   ],
 };
@@ -72,15 +70,8 @@ export default function Sidebar({ isOpen, onClose }) {
         `}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between px-7 h-20 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl gradient-accent flex items-center justify-center shadow-md shadow-accent-500/20">
-              <Briefcase className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-2xl font-black tracking-tight text-slate-900">
-              Hire<span className="text-accent-500">Hub</span>
-            </span>
-          </div>
+        <div className="flex items-center justify-between px-6 h-20 border-b border-slate-100">
+          <HireHubLogo size="md" />
           <button
             onClick={onClose}
             className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"

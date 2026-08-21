@@ -1,3 +1,10 @@
+const dns = require('dns');
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1', '8.8.4.4']);
+} catch (e) {
+  // Ignore DNS config error if restricted
+}
+
 const mongoose = require('mongoose');
 const env = require('./env');
 
@@ -8,7 +15,7 @@ const connectDB = async () => {
   try {
     console.log(`[MongoDB] Connecting to database...`);
     const conn = await mongoose.connect(primaryUri, {
-      serverSelectionTimeoutMS: 3000,
+      serverSelectionTimeoutMS: 15000,
       socketTimeoutMS: 45000,
       maxPoolSize: 10,
       minPoolSize: 2,
@@ -22,7 +29,7 @@ const connectDB = async () => {
       try {
         console.log(`[MongoDB] Attempting fallback to local instance: ${fallbackUri}...`);
         const fallbackConn = await mongoose.connect(fallbackUri, {
-          serverSelectionTimeoutMS: 3000,
+          serverSelectionTimeoutMS: 5000,
           socketTimeoutMS: 45000,
           maxPoolSize: 10,
           minPoolSize: 2,
@@ -50,7 +57,7 @@ async function autoSeedIfEmpty() {
 
       // 1. Admin
       await User.create({
-        full_name: 'Admin User',
+        full_name: 'System Administrator',
         email: 'admin@hirehub.com',
         password: 'Password123!',
         role: 'admin',
@@ -60,8 +67,8 @@ async function autoSeedIfEmpty() {
 
       // 2. Employer
       const employer = await User.create({
-        full_name: 'Tech Recruiter',
-        email: 'employer@hirehub.com',
+        full_name: 'SVS Agencies',
+        email: 'employer@gmail.com',
         password: 'Password123!',
         role: 'employer',
         is_verified: true,
@@ -70,8 +77,8 @@ async function autoSeedIfEmpty() {
 
       // 3. Job Seeker
       await User.create({
-        full_name: 'Alex Developer',
-        email: 'jobseeker@hirehub.com',
+        full_name: 'Job Seeker',
+        email: 'jobseeker@gmail.com',
         password: 'Password123!',
         role: 'jobseeker',
         is_verified: true,
@@ -83,45 +90,34 @@ async function autoSeedIfEmpty() {
         {
           employerId: employer._id,
           title: 'Senior Full Stack Engineer',
-          description: 'Looking for an experienced engineer to architect scalable web apps using React, Node.js, and MongoDB.',
-          skills_required: ['React', 'Node.js', 'MongoDB', 'Express', 'TypeScript', 'Docker', 'AWS'],
-          job_type: 'full-time',
-          location: 'San Francisco, CA (Hybrid)',
-          salary: '$140,000 - $175,000',
-          experience_level: 'senior',
+          company: 'SVS Agencies',
+          location: 'Remote',
+          type: 'Full-time',
+          salary: '$120,000 - $150,000',
+          description: 'Looking for an experienced Full Stack Engineer with React and Node.js skills.',
+          requirements: ['React', 'Node.js', 'MongoDB', 'TypeScript'],
           status: 'open',
+          flagged: false,
         },
         {
           employerId: employer._id,
-          title: 'Frontend React Developer',
-          description: 'Build performant, responsive user interfaces and interactive dashboards.',
-          skills_required: ['React', 'JavaScript', 'Tailwind', 'HTML', 'CSS', 'Redux', 'Git'],
-          job_type: 'full-time',
-          location: 'Remote',
-          salary: '$110,000 - $135,000',
-          experience_level: 'mid',
+          title: 'AI / ML Engineer',
+          company: 'SVS Agencies',
+          location: 'Hybrid',
+          type: 'Full-time',
+          salary: '$140,000 - $170,000',
+          description: 'Building explainable multi-criteria candidate ranking models.',
+          requirements: ['Python', 'PyTorch', 'NLP', 'Scikit-learn'],
           status: 'open',
+          flagged: false,
         },
       ]);
 
-      console.log('[MongoDB Seed] Seeded default users: admin@hirehub.com, employer@hirehub.com, jobseeker@hirehub.com (Password: Password123!)');
+      console.log('[MongoDB Seed] Demo accounts and jobs successfully created on MongoDB Atlas!');
     }
   } catch (err) {
     console.error('[MongoDB Seed Error]', err.message);
   }
 }
-
-// Connection lifecycle
-mongoose.connection.on('disconnected', () => {
-  console.warn('[MongoDB Warning] Disconnected from database.');
-});
-
-mongoose.connection.on('reconnected', () => {
-  console.log('[MongoDB Info] Reconnected to database.');
-});
-
-mongoose.connection.on('error', (err) => {
-  console.error(`[MongoDB Error] Runtime connection error: ${err.message}`);
-});
 
 module.exports = connectDB;
