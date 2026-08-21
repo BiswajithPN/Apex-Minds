@@ -66,7 +66,9 @@ const getUsers = asyncHandler(async (req, res) => {
       let extra = {};
       if (u.role === 'jobseeker') {
         const profile = await JobSeekerProfile.findOne({ userId: u._id }).lean();
-        const appCount = await Application.countDocuments({ applicantId: u._id });
+        const appCount = await Application.countDocuments({
+          $or: [{ jobSeekerId: u._id }, { applicantId: u._id }],
+        });
         extra = {
           headline: profile?.headline || 'Job Candidate',
           skills: profile?.skills || [],
@@ -111,7 +113,9 @@ const getUserDetails = asyncHandler(async (req, res) => {
 
   if (user.role === 'jobseeker') {
     profile = await JobSeekerProfile.findOne({ userId: user._id }).lean();
-    const applications = await Application.find({ applicantId: user._id })
+    const applications = await Application.find({
+      $or: [{ jobSeekerId: user._id }, { applicantId: user._id }],
+    })
       .populate('jobId', 'title company location')
       .populate('analysisId', 'finalScore recommendation matchLevel')
       .sort('-createdAt')
@@ -122,7 +126,7 @@ const getUserDetails = asyncHandler(async (req, res) => {
     const jobs = await Job.find({ employerId: user._id }).sort('-createdAt').lean();
     const jobIds = jobs.map((j) => j._id);
     const applicants = await Application.find({ jobId: { $in: jobIds } })
-      .populate('applicantId', 'full_name email avatar')
+      .populate('jobSeekerId', 'full_name email avatar')
       .populate('jobId', 'title')
       .sort('-createdAt')
       .limit(20)
@@ -174,7 +178,9 @@ const deleteUser = asyncHandler(async (req, res) => {
   // Cleanup profiles and related records
   if (user.role === 'jobseeker') {
     await JobSeekerProfile.deleteOne({ userId: user._id });
-    await Application.deleteMany({ applicantId: user._id });
+    await Application.deleteMany({
+      $or: [{ jobSeekerId: user._id }, { applicantId: user._id }],
+    });
   } else if (user.role === 'employer') {
     await EmployerProfile.deleteOne({ userId: user._id });
     const jobs = await Job.find({ employerId: user._id }, '_id');

@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
       match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,})+$/, 'Please enter a valid email address'],
+      index: true,
     },
     password: {
       type: String,
@@ -36,10 +37,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['jobseeker', 'employer', 'admin'],
       default: 'jobseeker',
+      index: true,
     },
     is_active: {
       type: Boolean,
       default: true,
+      index: true,
     },
     is_verified: {
       type: Boolean,
@@ -65,15 +68,10 @@ userSchema.virtual('isLocked').get(function () {
 });
 
 // Pre-save hook: Hash password with 12 salt rounds
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password') || !this.password) return next();
-  try {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (err) {
-    next(err);
-  }
+userSchema.pre('save', async function () {
+  if (!this.isModified('password') || !this.password) return;
+  const salt = await bcrypt.genSalt(12);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
 // Method: Compare password
