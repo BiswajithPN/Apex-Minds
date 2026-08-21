@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const env = require('./config/env');
 const errorHandler = require('./middleware/errorMiddleware');
@@ -20,6 +21,9 @@ const { getProfile, updateProfile } = require('./controllers/jobSeekerController
 const protect = require('./middleware/authMiddleware');
 
 const app = express();
+
+// ── GZIP Compression (reduces response size by ~70%) ──────────────────────────
+app.use(compression({ level: 6, threshold: 1024 }));
 
 // Security Headers
 app.use(helmet());
@@ -73,8 +77,24 @@ app.use('/api', apiLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// ── Cache-Control headers for GET API responses ───────────────────────────────
+app.use((req, res, next) => {
+  if (req.method === 'GET') {
+    // Short cache for list endpoints (jobs, recommendations)
+    if (/\/(jobs|recommendations|all)/.test(req.path)) {
+      res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=60');
+    } else {
+      res.set('Cache-Control', 'private, no-cache');
+    }
+  } else {
+    res.set('Cache-Control', 'no-store');
+  }
+  next();
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
+  res.set('Cache-Control', 'no-store');
   res.json({ success: true, message: 'HireHub API is running smoothly', timestamp: new Date() });
 });
 

@@ -12,19 +12,24 @@ const connectDB = async () => {
   const primaryUri = env.MONGO_URI || 'mongodb://127.0.0.1:27017/hirehub';
   const fallbackUri = 'mongodb://127.0.0.1:27017/hirehub';
 
+  const mongoOptions = {
+    serverSelectionTimeoutMS: 15000,
+    socketTimeoutMS: 45000,
+    maxPoolSize: 50,        // handle up to 50 concurrent DB operations
+    minPoolSize: 5,         // keep 5 connections always warm
+    maxIdleTimeMS: 30000,   // close idle connections after 30s
+    compressors: 'zlib',    // compress data between app and MongoDB
+    heartbeatFrequencyMS: 10000,
+  };
+
   try {
     console.log(`[MongoDB] Connecting to database...`);
-    const conn = await mongoose.connect(primaryUri, {
-      serverSelectionTimeoutMS: 15000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 10,
-      minPoolSize: 2,
-    });
+    const conn = await mongoose.connect(primaryUri, mongoOptions);
     console.log(`[MongoDB] Connected successfully to: ${conn.connection.host}/${conn.connection.name}`);
     await autoSeedIfEmpty();
   } catch (error) {
     console.warn(`[MongoDB Warning] Primary connection (${primaryUri}) failed: ${error.message}`);
-    
+
     if (primaryUri !== fallbackUri) {
       try {
         console.log(`[MongoDB] Attempting fallback to local instance: ${fallbackUri}...`);
