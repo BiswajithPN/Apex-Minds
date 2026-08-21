@@ -213,90 +213,86 @@ export default function UserManagement() {
       )}
 
       {/* Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <Card
-          padding="lg"
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div
           onClick={() => { setRoleFilter('all'); setStatusFilter('all'); }}
-          className={`cursor-pointer transition-all border-2 ${
+          className={`cursor-pointer transition-all border-2 rounded-2xl p-3.5 sm:p-6 ${
             roleFilter === 'all' && statusFilter === 'all'
               ? 'border-accent-500 bg-accent-50/30 ring-2 ring-accent-500/20'
               : 'border-slate-200 bg-white hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-black text-slate-500 uppercase tracking-wider">Total Users</p>
-              <p className="text-3xl font-black text-slate-900 mt-1">{totalCount}</p>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-black text-slate-500 uppercase tracking-wider truncate">Total Users</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5">{totalCount}</p>
             </div>
-            <div className="p-3 rounded-2xl bg-slate-100 text-slate-700">
-              <Users className="w-6 h-6" />
+            <div className="p-2 sm:p-3 rounded-xl bg-slate-100 text-slate-700 shrink-0">
+              <Users className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card
-          padding="lg"
+        <div
           onClick={() => setRoleFilter('jobseeker')}
-          className={`cursor-pointer transition-all border-2 ${
+          className={`cursor-pointer transition-all border-2 rounded-2xl p-3.5 sm:p-6 ${
             roleFilter === 'jobseeker'
               ? 'border-emerald-500 bg-emerald-50/30 ring-2 ring-emerald-500/20'
               : 'border-slate-200 bg-white hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-black text-emerald-700 uppercase tracking-wider">Job Seekers</p>
-              <p className="text-3xl font-black text-emerald-900 mt-1">{jobseekerCount}</p>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-black text-emerald-700 uppercase tracking-wider truncate">Job Seekers</p>
+              <p className="text-2xl sm:text-3xl font-black text-emerald-900 mt-0.5">{jobseekerCount}</p>
             </div>
-            <div className="p-3 rounded-2xl bg-emerald-100 text-emerald-700">
-              <User className="w-6 h-6" />
+            <div className="p-2 sm:p-3 rounded-xl bg-emerald-100 text-emerald-700 shrink-0">
+              <User className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card
-          padding="lg"
+        <div
           onClick={() => setRoleFilter('employer')}
-          className={`cursor-pointer transition-all border-2 ${
+          className={`cursor-pointer transition-all border-2 rounded-2xl p-3.5 sm:p-6 ${
             roleFilter === 'employer'
               ? 'border-accent-500 bg-accent-50/30 ring-2 ring-accent-500/20'
               : 'border-slate-200 bg-white hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-black text-accent-700 uppercase tracking-wider">Employers</p>
-              <p className="text-3xl font-black text-accent-900 mt-1">{employerCount}</p>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-black text-accent-700 uppercase tracking-wider truncate">Employers</p>
+              <p className="text-2xl sm:text-3xl font-black text-accent-900 mt-0.5">{employerCount}</p>
             </div>
-            <div className="p-3 rounded-2xl bg-accent-100 text-accent-700">
-              <Building2 className="w-6 h-6" />
+            <div className="p-2 sm:p-3 rounded-xl bg-accent-100 text-accent-700 shrink-0">
+              <Building2 className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card
-          padding="lg"
+        <div
           onClick={() => setRoleFilter('admin')}
-          className={`cursor-pointer transition-all border-2 ${
+          className={`cursor-pointer transition-all border-2 rounded-2xl p-3.5 sm:p-6 ${
             roleFilter === 'admin'
               ? 'border-purple-500 bg-purple-50/30 ring-2 ring-purple-500/20'
               : 'border-slate-200 bg-white hover:border-slate-300'
           }`}
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-black text-purple-700 uppercase tracking-wider">Admins</p>
-              <p className="text-3xl font-black text-purple-900 mt-1">{adminCount}</p>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-black text-purple-700 uppercase tracking-wider truncate">Admins</p>
+              <p className="text-2xl sm:text-3xl font-black text-purple-900 mt-0.5">{adminCount}</p>
             </div>
-            <div className="p-3 rounded-2xl bg-purple-100 text-purple-700">
-              <Shield className="w-6 h-6" />
+            <div className="p-2 sm:p-3 rounded-xl bg-purple-100 text-purple-700 shrink-0">
+              <Shield className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Search & Filter Bar */}
-      <Card padding="lg" className="border-2 border-slate-200/80 bg-white shadow-2xs">
+      <Card padding="md" className="border-2 border-slate-200/80 bg-white shadow-2xs">
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-4">
           <div className="sm:col-span-6 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />

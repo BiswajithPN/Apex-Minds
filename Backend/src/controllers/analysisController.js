@@ -180,7 +180,18 @@ const getApplicationAnalysis = asyncHandler(async (req, res) => {
     return sendError(res, 403, 'Unauthorized access to analysis');
   }
 
-  return sendSuccess(res, 200, { analysis });
+  // Get candidate resume_url
+  const candidateProfile = await JobSeekerProfile.findOne({ userId: candidateIdStr }).select('resume_url phone location');
+  const appDoc = await Application.findById(applicationId).select('resume_url cover_letter');
+
+  const analysisData = {
+    ...analysis.toObject(),
+    resumeUrl: appDoc?.resume_url || candidateProfile?.resume_url || '',
+    phone: candidateProfile?.phone || '',
+    location: candidateProfile?.location || '',
+  };
+
+  return sendSuccess(res, 200, { analysis: analysisData });
 });
 
 /**
@@ -205,9 +216,11 @@ const getJobCandidateRankings = asyncHandler(async (req, res) => {
   for (const app of applications) {
     let analysis = app.analysisId;
 
+    const profile = await JobSeekerProfile.findOne({ userId: app.jobSeekerId._id }).select('+resume_text');
+    const resumeUrl = app.resume_url || profile?.resume_url || '';
+
     // If application has not been analyzed yet, analyze it
     if (!analysis) {
-      const profile = await JobSeekerProfile.findOne({ userId: app.jobSeekerId._id }).select('+resume_text');
       const resumeText = profile?.resume_text || `${app.jobSeekerId.full_name} Technical Profile`;
 
       const analysisResult = await performMultiCriteriaAnalysis({
@@ -237,6 +250,9 @@ const getJobCandidateRankings = asyncHandler(async (req, res) => {
       candidateId: app.jobSeekerId._id,
       name: app.jobSeekerId.full_name,
       email: app.jobSeekerId.email,
+      resumeUrl: resumeUrl || profile?.resume_url || app.resume_url || '',
+      phone: profile?.phone || '',
+      location: profile?.location || '',
       matchScore: analysis.finalScore,
       confidenceScore: analysis.confidenceScore,
       confidenceLevel: analysis.confidenceLevel,

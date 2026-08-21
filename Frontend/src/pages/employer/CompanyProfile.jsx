@@ -117,7 +117,7 @@ export default function CompanyProfile() {
         </div>
       )}
 
-      <Card padding="lg">
+      <Card padding="md" className="border-2 border-slate-200/80 shadow-sm">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="grid sm:grid-cols-2 gap-4">
             <div>

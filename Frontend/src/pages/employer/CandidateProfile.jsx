@@ -55,50 +55,50 @@ export default function CandidateProfile() {
       </button>
 
       {/* Header */}
-      <Card padding="lg" className="mb-6">
-        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
-          <div className="w-16 h-16 rounded-2xl gradient-accent flex items-center justify-center text-white text-xl font-bold shrink-0 shadow-md">
+      <Card padding="md" className="mb-6 border-2 border-slate-200/80 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-5 text-center sm:text-left">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl gradient-accent flex items-center justify-center text-white text-xl font-bold shrink-0 shadow-md">
             {candidate.avatar ? (
               <img src={candidate.avatar} alt="" className="w-full h-full rounded-2xl object-cover" />
             ) : (
-              candidate.name?.[0] || 'C'
+              (candidate.name || candidate.full_name || 'C')[0].toUpperCase()
             )}
           </div>
 
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-slate-900">{candidate.name}</h1>
-            <div className="flex flex-wrap justify-center sm:justify-start gap-4 mt-2 text-sm text-slate-500">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900">{candidate.name || candidate.full_name}</h1>
+            <div className="flex flex-wrap justify-center sm:justify-start gap-3 sm:gap-4 mt-2 text-xs sm:text-sm text-slate-500 font-medium">
               {candidate.email && (
                 <span className="flex items-center gap-1.5">
-                  <Mail className="w-4 h-4 text-slate-400" />
+                  <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   {candidate.email}
                 </span>
               )}
               {profile.phone && (
                 <span className="flex items-center gap-1.5">
-                  <Phone className="w-4 h-4 text-slate-400" />
+                  <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   {profile.phone}
                 </span>
               )}
               {profile.location && (
                 <span className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-slate-400" />
+                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                   {profile.location}
                 </span>
               )}
             </div>
           </div>
 
-          {candidate.resumeUrl && (
+          {(candidate.resumeUrl || profile.resume_url || candidate.resume_url) && (
             <a
-              href={getStorageUrl(candidate.resumeUrl)}
+              href={getStorageUrl(candidate.resumeUrl || profile.resume_url || candidate.resume_url)}
               target="_blank"
               rel="noopener noreferrer"
-              className="shrink-0"
+              className="shrink-0 w-full sm:w-auto"
             >
-              <Button size="sm">
-                <FileText className="w-4 h-4" />
-                View Resume
+              <Button size="sm" className="w-full sm:w-auto font-black text-xs sm:text-sm">
+                <FileText className="w-4 h-4 mr-1.5" />
+                View Candidate Resume
               </Button>
             </a>
           )}

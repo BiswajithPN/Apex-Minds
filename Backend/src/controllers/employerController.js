@@ -153,19 +153,30 @@ const getApplicantsForJob = asyncHandler(async (req, res) => {
     .populate('jobSeekerId', 'full_name email avatar')
     .sort('-match_score');
 
-  const formatted = applications.map((app) => ({
-    _id: app._id,
-    applicant: {
-      _id: app.jobSeekerId?._id,
-      name: app.jobSeekerId?.full_name,
-      email: app.jobSeekerId?.email,
-      avatar: app.jobSeekerId?.avatar,
-    },
-    status: app.status,
-    matchScore: app.match_score,
-    matchedSkills: app.matched_skills,
-    createdAt: app.createdAt,
-  }));
+  const formatted = await Promise.all(
+    applications.map(async (app) => {
+      let resumeUrl = app.resume_url;
+      if (!resumeUrl && app.jobSeekerId?._id) {
+        const prof = await JobSeekerProfile.findOne({ userId: app.jobSeekerId._id }).select('resume_url');
+        resumeUrl = prof?.resume_url || '';
+      }
+      return {
+        _id: app._id,
+        applicant: {
+          _id: app.jobSeekerId?._id,
+          name: app.jobSeekerId?.full_name,
+          email: app.jobSeekerId?.email,
+          avatar: app.jobSeekerId?.avatar,
+          resumeUrl,
+        },
+        resumeUrl,
+        status: app.status,
+        matchScore: app.match_score,
+        matchedSkills: app.matched_skills,
+        createdAt: app.createdAt,
+      };
+    })
+  );
 
   const ranked = await rankApplicants(formatted, job);
 

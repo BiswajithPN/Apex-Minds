@@ -80,58 +80,58 @@ export default function Analytics() {
       </div>
 
       {/* AI Bias & Fairness Audit Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <Card padding="lg" className="border-2 border-emerald-300 bg-white shadow-2xs">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-extrabold text-emerald-700 uppercase tracking-wider">Anti-Bias Compliance</p>
-              <p className="text-3xl font-black text-slate-900 mt-1">98.4%</p>
-              <p className="text-[11px] text-emerald-700 font-bold mt-1">EEOC / GDPR Aligned</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+        <div className="border-2 border-emerald-300 bg-white rounded-2xl p-3.5 sm:p-6 shadow-sm">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-extrabold text-emerald-700 uppercase tracking-wider truncate">Anti-Bias</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5">98.4%</p>
+              <p className="text-[10px] sm:text-[11px] text-emerald-700 font-bold mt-0.5 truncate">EEOC / GDPR Aligned</p>
             </div>
-            <div className="p-3.5 rounded-2xl bg-emerald-100 text-emerald-700">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="p-2 sm:p-3 rounded-xl bg-emerald-100 text-emerald-700 shrink-0">
+              <ShieldCheck className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card padding="lg" className="border-2 border-accent-300 bg-white shadow-2xs">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-extrabold text-accent-700 uppercase tracking-wider">Disparate Impact Ratio</p>
-              <p className="text-3xl font-black text-slate-900 mt-1">0.94</p>
-              <p className="text-[11px] text-accent-700 font-bold mt-1">&gt; 0.80 Passing Standard</p>
+        <div className="border-2 border-accent-300 bg-white rounded-2xl p-3.5 sm:p-6 shadow-sm">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-extrabold text-accent-700 uppercase tracking-wider truncate">Impact Ratio</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5">0.94</p>
+              <p className="text-[10px] sm:text-[11px] text-accent-700 font-bold mt-0.5 truncate">&gt; 0.80 Standard</p>
             </div>
-            <div className="p-3.5 rounded-2xl bg-accent-100 text-accent-700">
-              <Award className="w-6 h-6" />
+            <div className="p-2 sm:p-3 rounded-xl bg-accent-100 text-accent-700 shrink-0">
+              <Award className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card padding="lg" className="border-2 border-purple-300 bg-white shadow-2xs">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-extrabold text-purple-700 uppercase tracking-wider">Demographic Parity</p>
-              <p className="text-3xl font-black text-slate-900 mt-1">96.8%</p>
-              <p className="text-[11px] text-purple-700 font-bold mt-1">Zero PII Leakage</p>
+        <div className="border-2 border-purple-300 bg-white rounded-2xl p-3.5 sm:p-6 shadow-sm">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-extrabold text-purple-700 uppercase tracking-wider truncate">Parity</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5">96.8%</p>
+              <p className="text-[10px] sm:text-[11px] text-purple-700 font-bold mt-0.5 truncate">Zero PII Leakage</p>
             </div>
-            <div className="p-3.5 rounded-2xl bg-purple-100 text-purple-700">
-              <CheckCircle2 className="w-6 h-6" />
+            <div className="p-2 sm:p-3 rounded-xl bg-purple-100 text-purple-700 shrink-0">
+              <CheckCircle2 className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card padding="lg" className="border-2 border-amber-300 bg-white shadow-2xs">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs font-extrabold text-amber-700 uppercase tracking-wider">Candidate Throughput</p>
-              <p className="text-3xl font-black text-slate-900 mt-1">80+ / hr</p>
-              <p className="text-[11px] text-amber-700 font-bold mt-1">Sub-second Latency</p>
+        <div className="border-2 border-amber-300 bg-white rounded-2xl p-3.5 sm:p-6 shadow-sm">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs font-extrabold text-amber-700 uppercase tracking-wider truncate">Throughput</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 mt-0.5">80+/hr</p>
+              <p className="text-[10px] sm:text-[11px] text-amber-700 font-bold mt-0.5 truncate">Sub-sec Latency</p>
             </div>
-            <div className="p-3.5 rounded-2xl bg-amber-100 text-amber-700">
-              <Zap className="w-6 h-6" />
+            <div className="p-2 sm:p-3 rounded-xl bg-amber-100 text-amber-700 shrink-0">
+              <Zap className="w-4 h-4 sm:w-6 sm:h-6" />
             </div>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Analytics Charts */}

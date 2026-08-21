@@ -212,22 +212,34 @@ export default function CandidateAnalysis() {
         </Link>
 
         {role === 'employer' && (
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            {analysis.resumeUrl && (
+              <a
+                href={analysis.resumeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-emerald-50 text-emerald-800 border-2 border-emerald-300 font-black text-xs sm:text-sm shadow-sm transition-all"
+              >
+                <FileText className="w-4 h-4 text-emerald-600" />
+                View Candidate Resume
+              </a>
+            )}
+
             <Button
               variant="secondary"
               size="md"
               onClick={handleShortlist}
               disabled={submittingAction || analysis.status === 'Shortlisted'}
-              className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300 font-black text-sm"
+              className="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300 font-black text-xs sm:text-sm"
             >
               <CheckCircle2 className="w-4 h-4 mr-1.5 text-emerald-600" />
-              {analysis.status === 'Shortlisted' ? 'Candidate Shortlisted' : 'Shortlist Candidate'}
+              {analysis.status === 'Shortlisted' ? 'Shortlisted' : 'Shortlist Candidate'}
             </Button>
 
             <Button
               size="md"
               onClick={handleOpenInterviewPanel}
-              className="font-black text-sm shadow-md"
+              className="font-black text-xs sm:text-sm shadow-md"
             >
               <Calendar className="w-4 h-4 mr-1.5" />
               Schedule Interview
@@ -237,26 +249,26 @@ export default function CandidateAnalysis() {
               variant="secondary"
               size="md"
               onClick={handleOpenRejectPanel}
-              className="bg-rose-50 hover:bg-rose-100 text-rose-800 border-rose-300 font-black text-sm"
+              className="bg-rose-50 hover:bg-rose-100 text-rose-800 border-rose-300 font-black text-xs sm:text-sm"
             >
               <XCircle className="w-4 h-4 mr-1.5 text-rose-600" />
-              Reject & Send Feedback
+              Reject &amp; Send Feedback
             </Button>
           </div>
         )}
       </div>
 
       {/* Hero Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl gradient-accent p-8 sm:p-10 text-white shadow-xl shadow-accent-500/10">
+      <div className="relative overflow-hidden rounded-3xl gradient-accent p-6 sm:p-10 text-white shadow-xl shadow-accent-500/10">
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-bold uppercase tracking-wider">
               <Sparkles className="w-4 h-4 text-emerald-300" />
-              AI Multi-Criteria Candidate Assessment & Semantic Audit
+              AI Multi-Criteria Candidate Assessment &amp; Semantic Audit
             </div>
 
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight">{analysis.candidateId?.full_name || 'Candidate Profile'}</h1>
-            <p className="text-white/80 text-sm sm:text-base flex flex-wrap items-center gap-5 font-medium">
+            <h1 className="text-2xl sm:text-4xl font-black tracking-tight">{analysis.candidateId?.full_name || 'Candidate Profile'}</h1>
+            <p className="text-white/80 text-xs sm:text-base flex flex-wrap items-center gap-3 sm:gap-5 font-medium">
               <span className="flex items-center gap-1.5">
                 <Briefcase className="w-4 h-4 text-emerald-300" />
                 Target Position: <strong className="text-white font-bold">{analysis.jobId?.title || 'Position'}</strong>
@@ -265,6 +277,17 @@ export default function CandidateAnalysis() {
                 <Mail className="w-4 h-4 text-white/70" />
                 {analysis.candidateId?.email}
               </span>
+              {analysis.resumeUrl && (
+                <a
+                  href={analysis.resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-emerald-200 hover:text-white underline font-bold"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  Attached Resume PDF
+                </a>
+              )}
             </p>
           </div>
 

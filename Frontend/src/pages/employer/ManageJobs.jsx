@@ -73,68 +73,68 @@ export default function ManageJobs() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Manage Job Postings</h1>
-          <p className="text-sm sm:text-base text-slate-500 mt-1 font-medium">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Manage Job Postings</h1>
+          <p className="text-xs sm:text-base text-slate-500 mt-1 font-medium">
             View active listings, track candidate applications, toggle status, and run AI multi-criteria screening
           </p>
         </div>
         <Link to="/employer/post-job">
-          <Button size="md" className="shadow-md shadow-accent-500/20 font-bold text-sm">
-            <PlusCircle className="w-5 h-5 mr-2" />
+          <Button size="md" className="shadow-md shadow-accent-500/20 font-bold text-xs sm:text-sm w-full sm:w-auto">
+            <PlusCircle className="w-4 h-4 mr-2" />
             Post New Job
           </Button>
         </Link>
       </div>
 
       {jobs.length === 0 ? (
-        <Card padding="lg" className="text-center py-20">
-          <div className="w-20 h-20 rounded-3xl bg-accent-50 text-accent-500 flex items-center justify-center mx-auto mb-4">
-            <Briefcase className="w-10 h-10" />
+        <Card padding="md" className="text-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-accent-50 text-accent-500 flex items-center justify-center mx-auto mb-3">
+            <Briefcase className="w-8 h-8" />
           </div>
-          <h3 className="text-2xl font-black text-slate-800 mb-2">No jobs posted yet</h3>
-          <p className="text-base text-slate-500 max-w-md mx-auto mb-6 font-medium leading-relaxed">
+          <h3 className="text-xl font-black text-slate-800 mb-1">No jobs posted yet</h3>
+          <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto mb-5 font-medium leading-relaxed">
             Post your first job listing to start receiving candidate applications, automated multi-criteria ranking, and AI resume screening.
           </p>
           <Link to="/employer/post-job">
-            <Button size="md" className="font-bold text-sm">
+            <Button size="md" className="font-bold text-xs sm:text-sm">
               <PlusCircle className="w-4 h-4 mr-2" />
               Post Your First Job
             </Button>
           </Link>
         </Card>
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-4 sm:space-y-5">
           {jobs.map((job) => (
-            <Card key={job._id} padding="lg" className="hover:border-accent-300 transition-all shadow-sm bg-white border-2 border-slate-200/80">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                <div className="space-y-3">
-                  <div className="flex flex-wrap items-center gap-3">
+            <Card key={job._id} padding="md" className="hover:border-accent-300 transition-all shadow-sm bg-white border-2 border-slate-200/80">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
+                <div className="space-y-2.5">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     <Link
                       to={`/employer/jobs/${job._id}/applicants`}
-                      className="text-xl sm:text-2xl font-black text-slate-900 hover:text-accent-600 transition-colors"
+                      className="text-lg sm:text-2xl font-black text-slate-900 hover:text-accent-600 transition-colors"
                     >
                       {job.title}
                     </Link>
-                    <Badge variant={job.status === 'open' ? 'success' : 'neutral'} size="md">
+                    <Badge variant={job.status === 'open' ? 'success' : 'neutral'} size="sm">
                       {job.status === 'open' ? 'Active / Open' : 'Closed'}
                     </Badge>
                     {job.job_type && (
-                      <span className="text-xs font-bold px-3 py-1 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 uppercase tracking-wider">
+                      <span className="text-[11px] sm:text-xs font-bold px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 uppercase tracking-wider">
                         {job.job_type}
                       </span>
                     )}
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-5 text-sm text-slate-500 font-medium">
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-5 text-xs sm:text-sm text-slate-500 font-medium">
                     {job.location && (
-                      <span className="flex items-center gap-1.5">
-                        <MapPin className="w-4 h-4 text-slate-400" />
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
                         {job.location}
                       </span>
                     )}
                     {job.salary && (
-                      <span className="flex items-center gap-1.5">
-                        <DollarSign className="w-4 h-4 text-slate-400" />
+                      <span className="flex items-center gap-1">
+                        <DollarSign className="w-3.5 h-3.5 text-slate-400" />
                         {job.salary}
                       </span>
                     )}
@@ -144,11 +144,11 @@ export default function ManageJobs() {
                   {/* Required Skills list */}
                   {job.skills_required?.length > 0 && (
                     <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Required Skills:</span>
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Skills:</span>
                       {job.skills_required.map((skill, sIdx) => (
                         <span
                           key={sIdx}
-                          className="px-2.5 py-1 bg-accent-50 text-accent-700 border border-accent-200 text-xs font-bold rounded-lg"
+                          className="px-2 py-0.5 bg-accent-50 text-accent-700 border border-accent-200 text-[11px] font-bold rounded-lg"
                         >
                           {skill}
                         </span>
@@ -158,40 +158,40 @@ export default function ManageJobs() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex flex-wrap items-center gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100">
-                  <Link to={`/employer/jobs/${job._id}/applicants`}>
-                    <Button variant="secondary" size="md" className="font-extrabold text-sm shadow-2xs">
-                      <Users className="w-4 h-4 mr-2 text-accent-600" />
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+                  <Link to={`/employer/jobs/${job._id}/applicants`} className="flex-1 sm:flex-initial">
+                    <Button variant="secondary" size="sm" className="font-extrabold text-xs shadow-2xs w-full">
+                      <Users className="w-3.5 h-3.5 mr-1.5 text-accent-600" />
                       Applicants ({job.applicantCount || 0})
                     </Button>
                   </Link>
 
-                  <Link to={`/employer/jobs/${job._id}/applicants`}>
-                    <Button size="md" className="font-extrabold text-sm shadow-xs flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" />
-                      AI Screen & Rank
-                      <ArrowRight className="w-4 h-4" />
+                  <Link to={`/employer/jobs/${job._id}/applicants`} className="flex-1 sm:flex-initial">
+                    <Button size="sm" className="font-extrabold text-xs shadow-xs flex items-center justify-center gap-1.5 w-full">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      AI Screen
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </Button>
                   </Link>
 
                   <button
                     onClick={() => toggleJobStatus(job._id, job.status)}
                     title={job.status === 'open' ? 'Deactivate job' : 'Activate job'}
-                    className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors"
+                    className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors"
                   >
                     {job.status === 'open' ? (
-                      <ToggleRight className="w-6 h-6 text-success-600" />
+                      <ToggleRight className="w-5 h-5 text-success-600" />
                     ) : (
-                      <ToggleLeft className="w-6 h-6 text-slate-400" />
+                      <ToggleLeft className="w-5 h-5 text-slate-400" />
                     )}
                   </button>
 
                   <button
                     onClick={() => deleteJob(job._id)}
                     title="Delete job post"
-                    className="p-2.5 rounded-xl border border-danger-200 hover:bg-danger-50 text-danger-600 transition-colors"
+                    className="p-2 rounded-xl border border-danger-200 hover:bg-danger-50 text-danger-600 transition-colors"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>

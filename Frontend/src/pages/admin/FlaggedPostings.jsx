@@ -88,11 +88,11 @@ export default function FlaggedPostings() {
       ) : (
         <div className="space-y-4">
           {flaggedJobs.map((job) => (
-            <Card key={job._id} padding="lg" className="border-2 border-rose-200 bg-white shadow-2xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <Card key={job._id} padding="md" className="border-2 border-rose-200 bg-white shadow-2xs space-y-3.5">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div className="space-y-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-lg font-black text-slate-900">{job.title}</h3>
+                    <h3 className="text-base sm:text-lg font-black text-slate-900">{job.title}</h3>
                     <Badge variant="danger" size="sm" className="font-extrabold uppercase text-[10px]">
                       Flagged Listing
                     </Badge>
@@ -103,7 +103,7 @@ export default function FlaggedPostings() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
                   <Button
                     variant="secondary"
                     size="sm"
@@ -127,7 +127,7 @@ export default function FlaggedPostings() {
                 </div>
               </div>
 
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-700 leading-relaxed font-medium">
+              <div className="p-3 sm:p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-700 leading-relaxed font-medium">
                 {job.description}
               </div>
             </Card>
