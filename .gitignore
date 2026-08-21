@@ -1,0 +1,25 @@
+# Environment variables (CRITICAL: DO NOT COMMIT ENV FILES)
+.env
+.env.*
+*.env
+Backend/.env
+Frontend/.env
+
+# Node modules & dependencies
+node_modules/
+**/node_modules/
+
+# Build & Production outputs
+dist/
+**/dist/
+build/
+**/build/
+
+# Uploads & Temp files
+uploads/
+**/uploads/
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
