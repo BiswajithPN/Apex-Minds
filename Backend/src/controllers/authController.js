@@ -133,15 +133,18 @@ const googleAuth = asyncHandler(async (req, res) => {
 
   let user = await User.findOne({ email: normalizedEmail });
 
-  if (user) {
-    // Existing user: Link Google ID and avatar if missing
-    if (!user.google_id) {
-      user.google_id = google_id;
-      if (picture && !user.avatar) user.avatar = picture;
-      await user.save();
+  if (isSignUp) {
+    // ── SIGN UP FLOW ──────────────────────────────────────────────────────────
+    if (user) {
+      // Account already exists — block duplicate sign-up
+      return sendError(
+        res,
+        400,
+        'An account already exists with this Google email. Please sign in instead.'
+      );
     }
-  } else {
-    // New user auto-provisioning
+
+    // Create new account with the selected role
     const allowedRoles = ['jobseeker', 'employer'];
     const userRole = allowedRoles.includes(role) ? role : 'jobseeker';
     const randomHash = crypto.randomBytes(16).toString('hex');
@@ -164,6 +167,24 @@ const googleAuth = asyncHandler(async (req, res) => {
     }
 
     sendAccountConfirmationEmail(user.email, user.full_name);
+
+  } else {
+    // ── SIGN IN FLOW ──────────────────────────────────────────────────────────
+    if (!user) {
+      // No account found — block sign-in and prompt to register
+      return sendError(
+        res,
+        404,
+        'No account found with this Google email. Please create an account first.'
+      );
+    }
+
+    // Link Google ID and avatar if not yet linked
+    if (!user.google_id) {
+      user.google_id = google_id;
+      if (picture && !user.avatar) user.avatar = picture;
+      await user.save();
+    }
   }
 
   const token = generateToken({ id: user._id, role: user.role, email: user.email });
