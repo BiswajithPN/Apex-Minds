@@ -238,92 +238,15 @@ export default function Register() {
             </div>
           )}
 
-          <form onSubmit={handleEmailRegister} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
-                Full name
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="Jane Doe"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-colors shadow-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
-                Email address
-              </label>
-              <input
-                type="email"
-                required
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-colors shadow-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  placeholder="Min 8 characters"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-4 pr-10 py-3 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-colors shadow-sm"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-
-              {/* Password Validation Indicator */}
-              {password && (
-                <div className="mt-2 space-y-1 text-xs">
-                  <div className={`flex items-center gap-1.5 ${isMinLength ? 'text-emerald-700' : 'text-slate-500'}`}>
-                    {isMinLength ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <X className="w-3.5 h-3.5 text-slate-400" />}
-                    <span>At least 8 characters</span>
-                  </div>
-                  <div className={`flex items-center gap-1.5 ${hasNumberOrSpecial ? 'text-emerald-700' : 'text-slate-500'}`}>
-                    {hasNumberOrSpecial ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <X className="w-3.5 h-3.5 text-slate-400" />}
-                    <span>Contains a number or special character</span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || (password.length > 0 && !isPasswordValid)}
-              className="w-full py-3.5 px-4 bg-[#0d806f] hover:bg-[#0a6b5d] active:bg-[#08564a] text-white font-medium text-sm rounded-lg shadow-md shadow-emerald-900/10 transition-colors disabled:opacity-50 flex items-center justify-center cursor-pointer mt-2"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                'Create Account'
-              )}
-            </button>
-          </form>
-
           {googleClientId && (
-            <>
-              <div className="relative flex items-center justify-center my-6">
+            <div className="mt-4 flex flex-col items-center">
+              <div className="w-full flex items-center justify-center my-4">
                 <div className="border-t border-slate-200 w-full" />
-                <span className="bg-white px-3 text-xs text-slate-400 uppercase tracking-wider absolute">OR</span>
+                <span className="bg-white px-3 text-xs text-slate-400 uppercase tracking-wider absolute">
+                  SIGN UP WITH GOOGLE
+                </span>
               </div>
-              <div className="flex justify-center">
+              <div className="flex justify-center pt-2">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={() => setError('Google sign-up failed.')}
@@ -334,7 +257,7 @@ export default function Register() {
                   width="320"
                 />
               </div>
-            </>
+            </div>
           )}
 
           <p className="text-center text-sm text-slate-500 mt-8">
