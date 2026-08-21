@@ -12,10 +12,68 @@ const googleClient = new OAuth2Client();
 
 // POST /api/auth/register
 const registerUser = asyncHandler(async (req, res) => {
-  return sendError(
+  const { full_name, email, password, role } = req.body;
+
+  if (!full_name || !full_name.trim()) {
+    return sendError(res, 400, 'Full name is required');
+  }
+
+  if (!email || !email.trim()) {
+    return sendError(res, 400, 'Email address is required');
+  }
+
+  const sanitizedEmail = email.trim().toLowerCase();
+  const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,})+$/;
+  if (!emailRegex.test(sanitizedEmail)) {
+    return sendError(res, 400, 'Please enter a valid email address');
+  }
+
+  if (!password || password.length < 8) {
+    return sendError(res, 400, 'Password must be at least 8 characters long');
+  }
+
+  const allowedRoles = ['jobseeker', 'employer'];
+  const userRole = allowedRoles.includes(role) ? role : 'jobseeker';
+
+  const userExists = await User.findOne({ email: sanitizedEmail });
+  if (userExists) {
+    return sendError(res, 400, 'An account with this email address already exists. Please sign in instead.');
+  }
+
+  const user = await User.create({
+    full_name: full_name.trim(),
+    email: sanitizedEmail,
+    password,
+    role: userRole,
+    is_active: true,
+  });
+
+  // Create empty profile
+  if (userRole === 'jobseeker') {
+    await JobSeekerProfile.create({ userId: user._id, full_name: user.full_name });
+  } else if (userRole === 'employer') {
+    await EmployerProfile.create({ userId: user._id, company_name: user.full_name });
+  }
+
+  // Trigger welcome / confirmation email
+  sendAccountConfirmationEmail(user.email, user.full_name);
+
+  const token = generateToken({ id: user._id, role: user.role, email: user.email });
+
+  return sendSuccess(
     res,
-    403,
-    'Standard email/password registration is disabled. All user accounts must be created via Google Sign-In.'
+    201,
+    {
+      token,
+      user: {
+        _id: user._id,
+        name: user.full_name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar || '',
+      },
+    },
+    'Account created successfully'
   );
 });
 
@@ -31,27 +89,18 @@ const loginUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email: sanitizedEmail }).select('+password +loginAttempts +lockUntil');
 
   if (!user) {
-    return sendError(res, 404, 'No account found with this email address. Please sign up using Google.');
-  }
-
-  // RESTRICT EMAIL/PASSWORD LOGIN ONLY TO ADMIN ACCOUNTS
-  if (user.role !== 'admin') {
-    return sendError(
-      res,
-      403,
-      'Email and password login is restricted to Admin accounts. Regular users must sign in using Google.'
-    );
+    return sendError(res, 404, 'No account found with this email address. Please sign up first.');
   }
 
   if (!user.is_active) {
-    return sendError(res, 403, 'Your admin account has been deactivated. Please contact system management.');
+    return sendError(res, 403, 'Your account has been deactivated. Please contact support.');
   }
 
   if (user.isLocked) {
     return sendError(
       res,
       429,
-      'Admin account locked due to too many failed attempts. Try again after 15 minutes.'
+      'Account locked due to too many failed login attempts. Try again after 15 minutes.'
     );
   }
 
@@ -62,7 +111,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const hint = attemptsLeft > 0
       ? ` (${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining before lockout)`
       : ' — Account is now locked for 15 minutes.';
-    return sendError(res, 401, `Incorrect admin password. Please try again.${hint}`);
+    return sendError(res, 401, `Incorrect password. Please try again.${hint}`);
   }
 
   if (user.loginAttempts > 0) {
@@ -81,10 +130,10 @@ const loginUser = asyncHandler(async (req, res) => {
         name: user.full_name,
         email: user.email,
         role: user.role,
-        avatar: user.avatar,
+        avatar: user.avatar || '',
       },
     },
-    'Admin login successful'
+    'Login successful'
   );
 });
 

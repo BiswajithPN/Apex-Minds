@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { Briefcase, Eye, EyeOff, AlertCircle, Sparkles, ShieldCheck, UserCheck, ChevronDown, ChevronUp } from 'lucide-react';
+import { Briefcase, Eye, EyeOff, AlertCircle, Sparkles } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import api from '../../api/axiosInstance';
 
@@ -11,7 +11,6 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [showAdminForm, setShowAdminForm] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -26,15 +25,15 @@ export default function Login() {
     }
   }, [isAuthenticated, homePath, navigate]);
 
-  const handleAdminLogin = async (e) => {
+  const handleEmailLogin = async (e) => {
     e.preventDefault();
     setError('');
     if (!email.trim()) {
-      setError('Please enter admin email address.');
+      setError('Please enter your email address.');
       return;
     }
     if (!password) {
-      setError('Please enter admin password.');
+      setError('Please enter your password.');
       return;
     }
     setLoading(true);
@@ -47,16 +46,16 @@ export default function Login() {
       const msg = err.response?.data?.message;
       if (!err.response) {
         setError('Cannot reach server. Please check your internet connection and try again.');
-      } else if (status === 403) {
-        setError(msg || 'Email/password login is restricted to Admin accounts only. Regular users must sign in with Google.');
       } else if (status === 404) {
-        setError('No account found with this email. Regular users must sign in with Google.');
+        setError('No account found with this email. Please sign up first.');
       } else if (status === 401) {
-        setError('Incorrect password. Please verify admin credentials.');
+        setError('Incorrect password. Please verify your credentials and try again.');
       } else if (status === 429) {
-        setError(msg || 'Too many failed attempts. Admin account locked for 15 minutes.');
+        setError(msg || 'Too many failed login attempts. Account temporarily locked for 15 minutes.');
+      } else if (status === 403) {
+        setError('Your account has been deactivated. Please contact support.');
       } else {
-        setError(msg || 'Admin login failed. Please try again.');
+        setError(msg || 'Login failed. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -95,7 +94,7 @@ export default function Login() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-teal-400/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Logo */}
+        {/* Logo Header */}
         <div className="relative z-10 flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/30 backdrop-blur-md flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-950/40">
             <Briefcase className="w-6 h-6" />
@@ -162,31 +161,77 @@ export default function Login() {
             </div>
           )}
 
-          {/* 1. Primary User Sign In (Google OAuth) */}
-          <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-4 mb-6">
-            <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 mb-1">
-              <UserCheck className="w-5 h-5" />
+          {/* Form */}
+          <form onSubmit={handleEmailLogin} className="space-y-5">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                Email address
+              </label>
+              <input
+                type="email"
+                required
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-colors shadow-sm"
+              />
             </div>
 
             <div>
-              <p className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
-                User Sign In
-              </p>
-              <p className="text-xs text-slate-500 mt-1">
-                Job Seekers & Employers must sign in via Google OAuth.
-              </p>
+              <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-4 pr-10 py-3 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-colors shadow-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <div className="flex justify-end mt-2">
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
             </div>
 
-            {loading ? (
-              <div className="py-2 flex justify-center items-center gap-2 text-emerald-700 text-sm font-semibold">
-                <div className="w-5 h-5 border-2 border-emerald-700 border-t-transparent rounded-full animate-spin" />
-                <span>Signing in...</span>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 px-4 bg-[#0d806f] hover:bg-[#0a6b5d] active:bg-[#08564a] text-white font-medium text-sm rounded-lg shadow-md shadow-emerald-900/10 transition-colors disabled:opacity-50 flex items-center justify-center cursor-pointer"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                'Sign In'
+              )}
+            </button>
+          </form>
+
+          {/* Google OAuth Option */}
+          {googleClientId && (
+            <>
+              <div className="relative flex items-center justify-center my-6">
+                <div className="border-t border-slate-200 w-full" />
+                <span className="bg-white px-3 text-xs text-slate-400 uppercase tracking-wider absolute">OR</span>
               </div>
-            ) : googleClientId ? (
-              <div className="flex justify-center pt-2">
+              <div className="flex justify-center">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
-                  onError={() => setError('Google login failed.')}
+                  onError={() => setError('Google login failed. Please try again.')}
                   theme="outline"
                   shape="pill"
                   size="large"
@@ -194,78 +239,10 @@ export default function Login() {
                   width="320"
                 />
               </div>
-            ) : (
-              <p className="text-xs text-amber-700 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
-                Google OAuth Client ID is missing. Set VITE_GOOGLE_CLIENT_ID in Frontend .env.
-              </p>
-            )}
-          </div>
+            </>
+          )}
 
-          {/* 2. Admin Login Section (Password login restricted to Admin) */}
-          <div className="border border-slate-200 rounded-2xl overflow-hidden mb-6 transition-all">
-            <button
-              type="button"
-              onClick={() => setShowAdminForm(!showAdminForm)}
-              className="w-full px-5 py-3.5 bg-slate-100/80 hover:bg-slate-200/60 flex items-center justify-between text-xs font-bold text-slate-700 uppercase tracking-wider transition-colors cursor-pointer"
-            >
-              <span className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-700" />
-                <span>Admin Login (Email / Password)</span>
-              </span>
-              {showAdminForm ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-
-            {showAdminForm && (
-              <form onSubmit={handleAdminLogin} className="p-5 bg-white space-y-4 border-t border-slate-200 animate-fade-in">
-                <p className="text-xs text-slate-500 mb-2">
-                  Password login is restricted strictly to verified Admin accounts.
-                </p>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Admin Email</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="admin@hirehub.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Admin Password</label>
-                  <div className="relative">
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full pl-4 pr-10 py-2.5 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-colors"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3 px-4 bg-[#0d806f] hover:bg-[#0a6b5d] active:bg-[#08564a] text-white font-semibold text-xs rounded-lg shadow-md transition-colors disabled:opacity-50 flex items-center justify-center cursor-pointer uppercase tracking-wider"
-                >
-                  {loading ? 'Authenticating Admin...' : 'Sign In as Admin'}
-                </button>
-              </form>
-            )}
-          </div>
-
-          {/* Create account link */}
-          <p className="text-center text-sm text-slate-500 mt-6">
+          <p className="text-center text-sm text-slate-500 mt-8">
             Don't have an account?{' '}
             <Link
               to="/register"

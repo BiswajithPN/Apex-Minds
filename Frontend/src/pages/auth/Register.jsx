@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { Briefcase, UserCircle, Building2, AlertCircle, Sparkles, ShieldCheck } from 'lucide-react';
+import { Briefcase, UserCircle, Building2, Eye, EyeOff, AlertCircle, Sparkles, Check, X } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import api from '../../api/axiosInstance';
 
@@ -9,10 +9,19 @@ export default function Register() {
   const navigate = useNavigate();
   const { login, isAuthenticated, homePath } = useAuthStore();
   const [role, setRole] = useState('jobseeker');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  // Password validation checks
+  const isMinLength = password.length >= 8;
+  const hasNumberOrSpecial = /[0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password);
+  const isPasswordValid = isMinLength && hasNumberOrSpecial;
 
   useEffect(() => {
     if (isAuthenticated()) {
@@ -22,6 +31,62 @@ export default function Register() {
       }
     }
   }, [isAuthenticated, homePath, navigate]);
+
+  const handleEmailRegister = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!fullName.trim()) {
+      setError('Full name is required.');
+      return;
+    }
+    if (!email.trim()) {
+      setError('Email address is required.');
+      return;
+    }
+    if (!password) {
+      setError('Password is required.');
+      return;
+    }
+    if (!isMinLength) {
+      setError('Password must be at least 8 characters long.');
+      return;
+    }
+    if (!hasNumberOrSpecial) {
+      setError('Password must contain at least one number or special character.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data } = await api.post('/auth/register', {
+        full_name: fullName.trim(),
+        email: email.trim().toLowerCase(),
+        password,
+        role,
+      });
+      login(data.token, data.user);
+      if (data.user.role === 'jobseeker') {
+        navigate('/jobseeker/profile?onboarding=1', { replace: true });
+      } else {
+        navigate(homePath(data.user.role), { replace: true });
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message;
+      const status = err.response?.status;
+      if (status === 400 && msg) {
+        setError(msg);
+      } else if (status === 422 || status === 400) {
+        setError('Please check your registration details and try again.');
+      } else if (!err.response) {
+        setError('Cannot connect to server. Please check your internet connection.');
+      } else {
+        setError(msg || 'Registration failed. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGoogleSuccess = async (credentialResponse) => {
     setLoading(true);
@@ -45,7 +110,7 @@ export default function Register() {
       } else if (!err.response) {
         setError('Cannot connect to server. Please check your internet connection.');
       } else {
-        setError('Google account creation failed. Please try again.');
+        setError('Google sign-up failed. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -88,17 +153,17 @@ export default function Register() {
         <div className="relative z-10 my-10 lg:my-0 max-w-lg">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/20 text-emerald-300 text-xs font-semibold mb-6">
             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Google Single Sign-On Enabled</span>
+            <span>Join 50,000+ Job Seekers & Employers</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.15] text-white">
-            Create Your <br />
-            Account <br />
-            <span className="text-emerald-400">With Google</span>
+            Start Your <br />
+            Career Journey <br />
+            <span className="text-emerald-400">With AI Match</span>
           </h1>
 
           <p className="text-slate-300 text-sm sm:text-base leading-relaxed mt-6">
-            Account creation is powered exclusively by Google Sign-In for verified identity, enhanced security, and instant access.
+            Create an account to get instant AI resume match scoring, personalized job recommendations, and seamless application tracking.
           </p>
 
           <div className="grid grid-cols-3 gap-4 pt-10 border-t border-emerald-800/60 mt-10">
@@ -122,7 +187,7 @@ export default function Register() {
         </div>
       </div>
 
-      {/* ── RIGHT SIDE: Google-Only Sign Up Section ── */}
+      {/* ── RIGHT SIDE: Register Form Section ── */}
       <div className="flex flex-col justify-center px-6 sm:px-12 lg:px-20 py-12 bg-white">
         <div className="max-w-md w-full mx-auto">
           <div className="mb-6">
@@ -130,76 +195,135 @@ export default function Register() {
               Create account
             </h2>
             <p className="text-slate-500 text-sm mt-1.5">
-              Select your role and continue with Google Sign-In
+              Select your role & enter details to get started
             </p>
           </div>
 
           {/* Role selector */}
-          <div className="mb-6">
-            <label className="block text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wider">
-              1. Choose your account role
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              {roles.map((r) => {
-                const Icon = r.icon;
-                const isSelected = role === r.value;
-                return (
-                  <button
-                    key={r.value}
-                    type="button"
-                    onClick={() => {
-                      setRole(r.value);
-                      setError('');
-                    }}
-                    className={`
-                      flex flex-col items-center justify-center p-3.5 rounded-xl border transition-all text-center cursor-pointer
-                      ${
-                        isSelected
-                          ? 'border-emerald-600 bg-emerald-50/60 ring-2 ring-emerald-600/20'
-                          : 'border-slate-200 bg-white hover:border-slate-300'
-                      }
-                    `}
-                  >
-                    <Icon className={`w-6 h-6 mb-2 ${isSelected ? 'text-emerald-700' : 'text-slate-400'}`} />
-                    <p className={`font-bold text-xs ${isSelected ? 'text-emerald-800' : 'text-slate-700'}`}>
-                      {r.label}
-                    </p>
-                    <p className="text-[10px] text-slate-500 mt-0.5">{r.description}</p>
-                  </button>
-                );
-              })}
-            </div>
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {roles.map((r) => {
+              const Icon = r.icon;
+              const isSelected = role === r.value;
+              return (
+                <button
+                  key={r.value}
+                  type="button"
+                  onClick={() => {
+                    setRole(r.value);
+                    setError('');
+                  }}
+                  className={`
+                    flex flex-col items-center justify-center p-3 rounded-xl border transition-all text-center cursor-pointer
+                    ${
+                      isSelected
+                        ? 'border-emerald-600 bg-emerald-50/60 ring-2 ring-emerald-600/20'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }
+                  `}
+                >
+                  <Icon className={`w-5 h-5 mb-1.5 ${isSelected ? 'text-emerald-700' : 'text-slate-400'}`} />
+                  <p className={`font-bold text-xs ${isSelected ? 'text-emerald-800' : 'text-slate-700'}`}>
+                    {r.label}
+                  </p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">{r.description}</p>
+                </button>
+              );
+            })}
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl flex items-start gap-3">
+            <div className="mb-5 p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl flex items-start gap-3">
               <AlertCircle className="w-5 h-5 mt-0.5 shrink-0 text-rose-500" />
               <span className="font-medium">{error}</span>
             </div>
           )}
 
-          {/* Google Sign-In Only Box */}
-          <div className="p-6 bg-slate-50 border border-slate-200 rounded-2xl text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 mb-1">
-              <ShieldCheck className="w-5 h-5" />
+          <form onSubmit={handleEmailRegister} className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Full name
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Jane Doe"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-colors shadow-sm"
+              />
             </div>
 
             <div>
-              <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                2. Authenticate with Google
-              </p>
-              <p className="text-xs text-slate-500 mt-1">
-                Account creation uses Google Sign-In exclusively for security.
-              </p>
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Email address
+              </label>
+              <input
+                type="email"
+                required
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-colors shadow-sm"
+              />
             </div>
 
-            {loading ? (
-              <div className="py-3 flex justify-center items-center gap-2 text-emerald-700 text-sm font-semibold">
-                <div className="w-5 h-5 border-2 border-emerald-700 border-t-transparent rounded-full animate-spin" />
-                <span>Creating your account...</span>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  placeholder="Min 8 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-4 pr-10 py-3 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/10 transition-colors shadow-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
-            ) : googleClientId ? (
-              <div className="flex justify-center pt-2">
+
+              {/* Password Validation Indicator */}
+              {password && (
+                <div className="mt-2 space-y-1 text-xs">
+                  <div className={`flex items-center gap-1.5 ${isMinLength ? 'text-emerald-700' : 'text-slate-500'}`}>
+                    {isMinLength ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <X className="w-3.5 h-3.5 text-slate-400" />}
+                    <span>At least 8 characters</span>
+                  </div>
+                  <div className={`flex items-center gap-1.5 ${hasNumberOrSpecial ? 'text-emerald-700' : 'text-slate-500'}`}>
+                    {hasNumberOrSpecial ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <X className="w-3.5 h-3.5 text-slate-400" />}
+                    <span>Contains a number or special character</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || (password.length > 0 && !isPasswordValid)}
+              className="w-full py-3.5 px-4 bg-[#0d806f] hover:bg-[#0a6b5d] active:bg-[#08564a] text-white font-medium text-sm rounded-lg shadow-md shadow-emerald-900/10 transition-colors disabled:opacity-50 flex items-center justify-center cursor-pointer mt-2"
+            >
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                'Create Account'
+              )}
+            </button>
+          </form>
+
+          {googleClientId && (
+            <>
+              <div className="relative flex items-center justify-center my-6">
+                <div className="border-t border-slate-200 w-full" />
+                <span className="bg-white px-3 text-xs text-slate-400 uppercase tracking-wider absolute">OR</span>
+              </div>
+              <div className="flex justify-center">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={() => setError('Google sign-up failed.')}
@@ -210,12 +334,8 @@ export default function Register() {
                   width="320"
                 />
               </div>
-            ) : (
-              <p className="text-xs text-amber-700 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                Google OAuth Client ID is missing. Please set VITE_GOOGLE_CLIENT_ID in your Frontend .env file.
-              </p>
-            )}
-          </div>
+            </>
+          )}
 
           <p className="text-center text-sm text-slate-500 mt-8">
             Already have an account?{' '}
