@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+@theme {
+  /* ── Accent: Deep Teal ── */
+  --color-accent-50: #effefa;
+  --color-accent-100: #c7fff2;
+  --color-accent-200: #90ffe6;
+  --color-accent-300: #51f7d6;
+  --color-accent-400: #1de4c1;
+  --color-accent-500: #0d9e8a;
+  --color-accent-600: #06a08a;
+  --color-accent-700: #0a806f;
+  --color-accent-800: #0d655a;
+  --color-accent-900: #10534b;
+  --color-accent-950: #03312e;
+
+  /* ── Warn: Amber ── */
+  --color-warn-50: #fffbeb;
+  --color-warn-100: #fef3c7;
+  --color-warn-200: #fde68a;
+  --color-warn-300: #fcd34d;
+  --color-warn-400: #fbbf24;
+  --color-warn-500: #f59e0b;
+  --color-warn-600: #d97706;
+  --color-warn-700: #b45309;
+  --color-warn-800: #92400e;
+  --color-warn-900: #78350f;
+  --color-warn-950: #451a03;
+
+  /* ── Danger: Red ── */
+  --color-danger-50: #fef2f2;
+  --color-danger-100: #fee2e2;
+  --color-danger-200: #fecaca;
+  --color-danger-300: #fca5a5;
+  --color-danger-400: #f87171;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
+  --color-danger-800: #991b1b;
+  --color-danger-900: #7f1d1d;
+  --color-danger-950: #450a0a;
+
+  /* ── Success: Green ── */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-success-800: #166534;
+  --color-success-900: #14532d;
+  --color-success-950: #052e16;
+
+  /* ── Sidebar ── */
+  --sidebar-width: 280px;
+
+  /* ── Font ── */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* ── Animations ── */
+  --animate-fade-in: fade-in 0.4s ease-out both;
+  --animate-slide-in-left: slide-in-left 0.35s ease-out both;
+  --animate-skeleton-pulse: skeleton-pulse 1.8s ease-in-out infinite;
+  --animate-progress-fill: progress-fill 1s ease-out both;
+  --animate-score-ring: score-ring 1.2s ease-out both;
+}
+
+/* ── Keyframes ── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 0.8; }
+}
+
+@keyframes progress-fill {
+  from { width: 0%; }
+}
+
+@keyframes score-ring {
+  from { stroke-dashoffset: var(--circumference, 283); }
+}
+
+/* ── Base styles ── */
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    font-size: 17.5px;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: #f8fafc;
+    color: #0f172a;
+    line-height: 1.65;
+    min-height: 100vh;
+    font-size: 1rem;
+    font-weight: 450;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    font-weight: 800;
+  }
+
+  ::selection {
+    background-color: var(--color-accent-200);
+    color: var(--color-accent-950);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+/* ── Utility classes ── */
+@layer utilities {
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .glass-dark {
+    background: rgba(3, 49, 46, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .gradient-accent {
+    background: linear-gradient(135deg, var(--color-accent-500), var(--color-accent-700));
+  }
+
+  .gradient-hero {
+    background: linear-gradient(135deg, var(--color-accent-950) 0%, var(--color-accent-800) 50%, var(--color-accent-600) 100%);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, var(--color-accent-400), var(--color-accent-600));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
