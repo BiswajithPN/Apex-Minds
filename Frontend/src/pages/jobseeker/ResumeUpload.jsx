@@ -39,13 +39,14 @@ export default function ResumeUpload() {
 
   const loadExisting = async () => {
     try {
-      const { data } = await api.get('/resume/analysis');
-      if (data.resumeUrl) {
-        setResumeUrl(data.resumeUrl);
+      const res = await api.get('/resume/analysis');
+      const payload = res.data?.data || res.data;
+      if (payload?.resumeUrl || payload?.resume_url) {
+        setResumeUrl(payload.resumeUrl || payload.resume_url);
         setShowDropZone(false);
       }
-      if (data.analysis) {
-        setAnalysis(data.analysis);
+      if (payload?.analysis || payload?.parsedData) {
+        setAnalysis(payload.analysis || payload.parsedData);
       }
     } catch {
       // No existing resume
@@ -68,11 +69,12 @@ export default function ResumeUpload() {
     try {
       const formData = new FormData();
       formData.append('resume', file);
-      const { data } = await api.post('/resume/upload', formData, {
+      const res = await api.post('/resume/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      setResumeUrl(data.resumeUrl);
-      setAnalysis(data.analysis);
+      const payload = res.data?.data || res.data;
+      setResumeUrl(payload.resumeUrl || payload.resume_url);
+      setAnalysis(payload.analysis || payload.parsedData || payload.profile?.parsed_resume_data);
       setShowDropZone(false);
     } catch (err) {
       setError(err.response?.data?.message || 'Upload failed. Please try again.');

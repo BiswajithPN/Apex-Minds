@@ -50,8 +50,9 @@ export default function MyApplications() {
 
   const loadApplications = async () => {
     try {
-      const { data } = await api.get('/applications/mine');
-      setApplications(data.applications || []);
+      const res = await api.get('/applications/mine');
+      const payload = res.data?.data || res.data;
+      setApplications(payload?.applications || []);
     } catch {
       setApplications([]);
     } finally {
