@@ -124,24 +124,24 @@ export default function JobSeekerDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
         {[
           { label: 'Applications', value: stats?.applications || recentApps.length || 0, icon: ClipboardList, color: 'text-accent-600', bg: 'bg-accent-100' },
           { label: 'Interviews', value: stats?.interviews || interviews.length || 0, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-100' },
           { label: 'Profile Score', value: `${profileScore || 85}%`, icon: BarChart3, color: 'text-amber-600', bg: 'bg-amber-100' },
           { label: 'AI Matches', value: stats?.aiMatches || topMatches.length || 3, icon: Sparkles, color: 'text-purple-600', bg: 'bg-purple-100' },
         ].map((stat) => (
-          <Card key={stat.label} padding="lg" className="hover:border-accent-300 transition-all shadow-sm bg-white border-2 border-slate-200/80">
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <p className="text-xs sm:text-sm font-extrabold text-slate-500 uppercase tracking-wider">{stat.label}</p>
-                <p className="text-3xl font-black text-slate-900">{stat.value}</p>
+          <div key={stat.label} className="bg-white rounded-2xl border-2 border-slate-200/80 p-4 sm:p-6 shadow-sm hover:border-accent-300 transition-all">
+            <div className="flex items-start justify-between gap-2">
+              <div className="space-y-1 min-w-0">
+                <p className="text-[10px] sm:text-xs font-extrabold text-slate-500 uppercase tracking-wider leading-tight">{stat.label}</p>
+                <p className="text-2xl sm:text-3xl font-black text-slate-900">{stat.value}</p>
               </div>
-              <div className={`p-3.5 rounded-2xl ${stat.bg} ${stat.color}`}>
-                <stat.icon className="w-6 h-6" />
+              <div className={`p-2 sm:p-3 rounded-xl shrink-0 ${stat.bg} ${stat.color}`}>
+                <stat.icon className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </div>
-          </Card>
+          </div>
         ))}
       </div>
 

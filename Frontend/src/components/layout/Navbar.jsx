@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, ChevronDown, LogOut, KeyRound, Bell, Check, Sparkles, AlertCircle } from 'lucide-react';
+import { Menu, ChevronDown, LogOut, KeyRound, Bell, Sparkles } from 'lucide-react';
 import Badge from '../ui/Badge';
 import useAuthStore from '../../store/authStore';
 import api from '../../api/axiosInstance';
@@ -11,7 +11,13 @@ const roleBadgeVariant = {
   admin: 'danger',
 };
 
-const roleLabel = {
+// Short label for mobile, full label for desktop
+const roleLabelShort = {
+  jobseeker: 'Job Seeker',
+  employer: 'Employer',
+  admin: 'Admin',
+};
+const roleLabelFull = {
   jobseeker: 'Job Seeker',
   employer: 'Employer / Recruiter',
   admin: 'Administrator',
@@ -28,7 +34,6 @@ export default function Navbar({ onMenuClick }) {
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
 
-  // Load notifications
   useEffect(() => {
     if (user) {
       loadNotifications();
@@ -60,27 +65,17 @@ export default function Navbar({ onMenuClick }) {
     }
   };
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleClick = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-      if (notifRef.current && !notifRef.current.contains(e.target)) {
-        setNotifOpen(false);
-      }
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
   const initials = user?.name
-    ? user.name
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .slice(0, 2)
+    ? user.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
     : '??';
 
   const handleLogout = () => {
@@ -89,32 +84,43 @@ export default function Navbar({ onMenuClick }) {
   };
 
   return (
-    <header className="sticky top-0 z-30 h-20 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-6 lg:px-8 flex items-center justify-between shadow-2xs font-sans">
-      {/* Left side */}
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-30 h-14 sm:h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-3 sm:px-6 lg:px-8 flex items-center justify-between shadow-sm font-sans">
+
+      {/* Left — hamburger + role badge */}
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <button
           onClick={onMenuClick}
-          className="lg:hidden p-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+          className="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors shrink-0"
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="w-5 h-5" />
         </button>
-        <Badge variant={roleBadgeVariant[role]} size="md" className="font-extrabold text-xs uppercase tracking-wider">
-          {roleLabel[role]}
-        </Badge>
+
+        {/* Mobile: short label | Desktop: full label */}
+        <span className="sm:hidden">
+          <Badge variant={roleBadgeVariant[role]} size="sm" className="font-extrabold text-[11px] uppercase tracking-wide whitespace-nowrap">
+            {roleLabelShort[role]}
+          </Badge>
+        </span>
+        <span className="hidden sm:inline">
+          <Badge variant={roleBadgeVariant[role]} size="md" className="font-extrabold text-xs uppercase tracking-wider whitespace-nowrap">
+            {roleLabelFull[role]}
+          </Badge>
+        </span>
       </div>
 
-      {/* Right side — notifications & user menu */}
-      <div className="flex items-center gap-4">
+      {/* Right — notifications + user menu */}
+      <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+
         {/* Notification Bell */}
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => setNotifOpen(!notifOpen)}
-            className="p-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors relative"
+            className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors relative"
             title="Notifications"
           >
-            <Bell className="w-6 h-6" />
+            <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-accent-600 text-white text-[11px] font-black flex items-center justify-center animate-pulse shadow-sm">
+              <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center">
                 {unreadCount}
               </span>
             )}
@@ -122,21 +128,19 @@ export default function Navbar({ onMenuClick }) {
 
           {/* Notifications Dropdown */}
           {notifOpen && (
-            <div className="absolute right-0 mt-3 w-88 sm:w-104 bg-white rounded-3xl shadow-2xl shadow-black/15 border border-slate-200 py-3 animate-fade-in z-50">
-              <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
-                <p className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                  Notifications & AI Feedback
-                </p>
+            <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-96 bg-white rounded-2xl shadow-2xl shadow-black/15 border border-slate-200 py-2 z-50">
+              <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
+                <p className="text-xs font-black text-slate-900 uppercase tracking-wider">Notifications</p>
                 {unreadCount > 0 && (
-                  <span className="text-xs font-bold text-accent-700 bg-accent-100 px-3 py-0.5 rounded-full">
+                  <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
                     {unreadCount} unread
                   </span>
                 )}
               </div>
 
-              <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
+              <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
                 {notifications.length === 0 ? (
-                  <div className="py-12 text-center text-sm text-slate-400 font-medium">
+                  <div className="py-10 text-center text-sm text-slate-400 font-medium">
                     No new notifications
                   </div>
                 ) : (
@@ -144,21 +148,17 @@ export default function Navbar({ onMenuClick }) {
                     <div
                       key={notif._id}
                       onClick={() => handleMarkAsRead(notif._id)}
-                      className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer space-y-1.5 ${
-                        !notif.read ? 'bg-accent-50/30' : ''
-                      }`}
+                      className={`p-3.5 hover:bg-slate-50 transition-colors cursor-pointer space-y-1 ${!notif.read ? 'bg-blue-50/30' : ''}`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-accent-500 shrink-0" />
+                        <p className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                           {notif.title}
                         </p>
-                        {!notif.read && (
-                          <span className="w-2.5 h-2.5 rounded-full bg-accent-500 shrink-0 mt-1" />
-                        )}
+                        {!notif.read && <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-1" />}
                       </div>
-                      <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">{notif.message}</p>
-                      <p className="text-[11px] text-slate-400 font-semibold">
+                      <p className="text-xs text-slate-600 leading-relaxed">{notif.message}</p>
+                      <p className="text-[11px] text-slate-400">
                         {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
@@ -167,13 +167,10 @@ export default function Navbar({ onMenuClick }) {
               </div>
 
               {role === 'jobseeker' && (
-                <div className="p-3 border-t border-slate-100 text-center bg-slate-50/50 rounded-b-3xl">
+                <div className="p-2.5 border-t border-slate-100 text-center">
                   <button
-                    onClick={() => {
-                      setNotifOpen(false);
-                      navigate('/jobseeker/applications');
-                    }}
-                    className="text-xs font-extrabold text-accent-600 hover:text-accent-700 block w-full py-1"
+                    onClick={() => { setNotifOpen(false); navigate('/jobseeker/applications'); }}
+                    className="text-xs font-extrabold text-emerald-600 hover:text-emerald-700"
                   >
                     View All in My Applications →
                   </button>
@@ -187,45 +184,39 @@ export default function Navbar({ onMenuClick }) {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center gap-3 p-1.5 pr-4 rounded-2xl hover:bg-slate-100/80 transition-colors border border-transparent hover:border-slate-200"
+            className="flex items-center gap-1.5 sm:gap-2 p-1.5 sm:pr-3 rounded-xl hover:bg-slate-100 transition-colors"
           >
             {/* Avatar */}
-            <div className="w-10 h-10 rounded-xl gradient-accent flex items-center justify-center text-white text-sm font-black shadow-md shadow-accent-500/20">
-              {user?.avatar ? (
-                <img src={user.avatar} alt="" className="w-full h-full rounded-xl object-cover" />
-              ) : (
-                initials
-              )}
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-xs font-black shadow-sm shrink-0 overflow-hidden">
+              {user?.avatar
+                ? <img src={user.avatar} alt="" className="w-full h-full object-cover" />
+                : initials
+              }
             </div>
-            <span className="hidden sm:block text-base font-bold text-slate-800 max-w-[140px] truncate">
+            <span className="hidden sm:block text-sm font-bold text-slate-800 max-w-[120px] truncate">
               {user?.name || user?.full_name || 'Account'}
             </span>
-            <ChevronDown className="w-4 h-4 text-slate-400" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
           </button>
 
           {/* User Dropdown */}
           {dropdownOpen && (
-            <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-2xl shadow-black/15 border border-slate-200 py-2 animate-fade-in z-50">
-              <div className="px-4 py-3 border-b border-slate-100">
+            <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl shadow-black/15 border border-slate-200 py-2 z-50">
+              <div className="px-4 py-2.5 border-b border-slate-100">
                 <p className="text-sm font-bold text-slate-900 truncate">{user?.name || user?.full_name}</p>
-                <p className="text-xs text-slate-500 truncate mt-0.5 font-medium">{user?.email}</p>
+                <p className="text-xs text-slate-500 truncate mt-0.5">{user?.email}</p>
               </div>
-
-              <div className="p-1.5 space-y-1">
+              <div className="p-1.5 space-y-0.5">
                 <button
-                  onClick={() => {
-                    setDropdownOpen(false);
-                    navigate('/change-password');
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
+                  onClick={() => { setDropdownOpen(false); navigate('/change-password'); }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
                 >
                   <KeyRound className="w-4 h-4 text-slate-400" />
                   Change Password
                 </button>
-
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
                 >
                   <LogOut className="w-4 h-4 text-rose-500" />
                   Sign Out
