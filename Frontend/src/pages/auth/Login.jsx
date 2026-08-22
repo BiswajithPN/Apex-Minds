@@ -88,10 +88,10 @@ export default function Login() {
 
         {/* Headline — hidden on very small mobile to save space */}
         <div className="relative z-10 mt-5 mb-4 hidden sm:block lg:my-0 lg:flex-1 lg:flex lg:flex-col lg:justify-center">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-[1.15] tracking-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-[1.15] tracking-tight text-white">
             Smart <br />
             Recruitment <br />
-            <span className="text-emerald-400">Made Simple</span>
+            <span className="text-white">Made Simple</span>
           </h1>
           <p className="mt-3 text-emerald-100/75 text-sm lg:text-base max-w-sm leading-relaxed font-medium">
             Connect with top verified talent through multi-criteria matching and explainable resume analysis.

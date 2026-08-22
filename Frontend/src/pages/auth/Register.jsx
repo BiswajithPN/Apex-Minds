@@ -97,10 +97,10 @@ export default function Register() {
 
         {/* Headline — hidden on small mobile */}
         <div className="relative z-10 mt-5 mb-4 hidden sm:block lg:my-0 lg:flex-1 lg:flex lg:flex-col lg:justify-center">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-[1.15] tracking-tight">
-            <span className="text-emerald-400">Start Your</span> <br />
-            <span className="text-emerald-400">Career Journey</span> <br />
-            <span className="text-emerald-400">Today</span>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-[1.15] tracking-tight text-white">
+            <span className="text-white">Start Your</span> <br />
+            <span className="text-white">Career Journey</span> <br />
+            <span className="text-white">Today</span>
           </h1>
           <p className="mt-3 text-emerald-100/75 text-sm lg:text-base max-w-sm leading-relaxed font-medium">
             Get instant resume match scoring, personalized job recommendations, and seamless application tracking.
