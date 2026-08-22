@@ -119,10 +119,10 @@ export default function ProfileEdit() {
     <div className="max-w-3xl mx-auto animate-fade-in pb-12">
       {isOnboarding && <OnboardingStepper currentStep={2} />}
 
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">Edit Profile</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          {isOnboarding ? 'Tell us about yourself to improve AI matching' : 'Keep your profile up to date'}
+      <div className="mb-6 border-b border-slate-200 pb-4">
+        <h1 className="text-2xl font-bold text-slate-900">{isOnboarding ? 'Complete Your Profile' : 'Edit Profile'}</h1>
+        <p className="text-slate-500 mt-1 text-sm">
+          {isOnboarding ? 'Tell us about yourself to improve job matching' : 'Keep your profile up to date'}
         </p>
       </div>
 

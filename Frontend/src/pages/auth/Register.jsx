@@ -91,7 +91,7 @@ export default function Register() {
           <HireHubLogo size="lg" textColor="text-white" accentColor="text-amber-400" />
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-800/60 border border-emerald-600/40 text-emerald-300 text-[11px] font-bold uppercase tracking-wider w-fit">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            AI-Driven Biasless Recruitment
+            Bias-Free Recruitment
           </div>
         </div>
 
@@ -100,27 +100,14 @@ export default function Register() {
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-[1.15] tracking-tight">
             <span className="text-emerald-400">Start Your</span> <br />
             <span className="text-emerald-400">Career Journey</span> <br />
-            <span className="text-emerald-400">With AI Match</span>
+            <span className="text-emerald-400">Today</span>
           </h1>
           <p className="mt-3 text-emerald-100/75 text-sm lg:text-base max-w-sm leading-relaxed font-medium">
-            Get instant AI resume match scoring, personalized job recommendations, and seamless application tracking.
+            Get instant resume match scoring, personalized job recommendations, and seamless application tracking.
           </p>
         </div>
 
-        {/* Stats */}
-        <div className="relative z-10 pt-4 border-t border-emerald-800/50 hidden sm:grid grid-cols-3 gap-3">
-          {[
-            { icon: <TrendingUp className="w-4 h-4" />, val: '10K+', label: 'Active Jobs' },
-            { icon: <Users className="w-4 h-4" />, val: '50K+', label: 'Job Seekers' },
-            { icon: <Zap className="w-4 h-4" />, val: '95%', label: 'Match Rate' },
-          ].map(({ icon, val, label }) => (
-            <div key={label} className="flex flex-col gap-0.5">
-              <div className="text-emerald-400">{icon}</div>
-              <p className="text-xl font-black text-white">{val}</p>
-              <p className="text-[11px] text-emerald-200/70 font-semibold">{label}</p>
-            </div>
-          ))}
-        </div>
+        {/* Stats row removed per user request */}
       </div>
 
       {/* ── FORM PANEL ── */}

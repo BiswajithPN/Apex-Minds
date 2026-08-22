@@ -82,14 +82,14 @@ export default function Login() {
           <HireHubLogo size="lg" textColor="text-white" accentColor="text-amber-400" />
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-800/60 border border-emerald-600/40 text-emerald-300 text-[11px] font-bold uppercase tracking-wider w-fit">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            AI-Driven Biasless Recruitment
+            Bias-Free Recruitment
           </div>
         </div>
 
         {/* Headline — hidden on very small mobile to save space */}
         <div className="relative z-10 mt-5 mb-4 hidden sm:block lg:my-0 lg:flex-1 lg:flex lg:flex-col lg:justify-center">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-[1.15] tracking-tight">
-            AI-Powered <br />
+            Smart <br />
             Recruitment <br />
             <span className="text-emerald-400">Made Simple</span>
           </h1>
@@ -98,20 +98,7 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Stats row — only on sm+ screens */}
-        <div className="relative z-10 pt-4 border-t border-emerald-800/50 hidden sm:grid grid-cols-3 gap-3">
-          {[
-            { icon: <TrendingUp className="w-4 h-4" />, val: '10K+', label: 'Active Jobs' },
-            { icon: <Users className="w-4 h-4" />, val: '50K+', label: 'Job Seekers' },
-            { icon: <Zap className="w-4 h-4" />, val: '95%', label: 'Match Rate' },
-          ].map(({ icon, val, label }) => (
-            <div key={label} className="flex flex-col gap-0.5">
-              <div className="text-emerald-400">{icon}</div>
-              <p className="text-xl font-black text-white">{val}</p>
-              <p className="text-[11px] text-emerald-200/70 font-semibold">{label}</p>
-            </div>
-          ))}
-        </div>
+        {/* Stats row removed per user request */}
       </div>
 
       {/* ── FORM PANEL (below hero on mobile, right column on desktop) ── */}
