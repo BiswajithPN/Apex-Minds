@@ -1,27 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, ToggleLeft, ToggleRight, Trash2, Users, Edit3 } from 'lucide-react';
+import { Briefcase, ToggleLeft, ToggleRight, Trash2, Users, PlusCircle, Sparkles, MapPin, DollarSign, ArrowRight } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
-import Modal from '../../components/ui/Modal';
 import { CardSkeleton } from '../../components/ui/Spinner';
 import api from '../../api/axiosInstance';
 
 export default function ManageJobs() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editingJob, setEditingJob] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [submittingEdit, setSubmittingEdit] = useState(false);
-
-  // Edit form state
-  const [editTitle, setEditTitle] = useState('');
-  const [editLocation, setEditLocation] = useState('');
-  const [editType, setEditType] = useState('full-time');
-  const [editSalary, setEditSalary] = useState('');
-  const [editSkills, setEditSkills] = useState('');
-  const [editDescription, setEditDescription] = useState('');
 
   useEffect(() => {
     loadJobs();
@@ -29,9 +17,15 @@ export default function ManageJobs() {
 
   const loadJobs = async () => {
     try {
-      const { data } = await api.get('/employer/jobs');
-      setJobs(data.jobs || []);
-    } catch {
+      let res;
+      try {
+        res = await api.get('/employer/jobs');
+      } catch {
+        res = await api.get('/jobs/employer/mine');
+      }
+      setJobs(res.data.jobs || res.data.data || []);
+    } catch (err) {
+      console.error('Failed to load employer jobs', err);
       setJobs([]);
     } finally {
       setLoading(false);
@@ -41,249 +35,170 @@ export default function ManageJobs() {
   const toggleJobStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'open' ? 'closed' : 'open';
     try {
-      await api.put(`/employer/jobs/${id}`, { status: newStatus });
+      try {
+        await api.put(`/employer/jobs/${id}`, { status: newStatus });
+      } catch {
+        await api.patch(`/jobs/${id}`, { status: newStatus });
+      }
       setJobs(jobs.map((j) => (j._id === id ? { ...j, status: newStatus } : j)));
-    } catch {
-      // Handled by interceptor
+    } catch (err) {
+      console.error('Failed to toggle status', err);
     }
   };
 
   const deleteJob = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this job posting?')) return;
+    if (!window.confirm('Are you sure you want to delete this job posting? All submitted applications will also be removed.')) return;
     try {
-      await api.delete(`/employer/jobs/${id}`);
+      try {
+        await api.delete(`/employer/jobs/${id}`);
+      } catch {
+        await api.delete(`/jobs/${id}`);
+      }
       setJobs(jobs.filter((j) => j._id !== id));
-    } catch {
-      // Handled by interceptor
-    }
-  };
-
-  const openEditModal = (job) => {
-    setEditingJob(job);
-    setEditTitle(job.title || '');
-    setEditLocation(job.location || '');
-    setEditType(job.job_type || job.type || 'full-time');
-    setEditSalary(job.salary || '');
-    setEditSkills(Array.isArray(job.skills_required) ? job.skills_required.join(', ') : job.skills || '');
-    setEditDescription(job.description || '');
-    setModalOpen(true);
-  };
-
-  const handleSaveEdit = async (e) => {
-    e.preventDefault();
-    if (!editingJob) return;
-    setSubmittingEdit(true);
-
-    try {
-      const payload = {
-        title: editTitle,
-        location: editLocation,
-        type: editType,
-        salary: editSalary,
-        skills: editSkills ? editSkills.split(',').map((s) => s.trim()).filter(Boolean) : [],
-        description: editDescription,
-      };
-
-      const { data } = await api.put(`/employer/jobs/${editingJob._id}`, payload);
-      const updated = data.job || data;
-
-      setJobs(jobs.map((j) => (j._id === editingJob._id ? { ...j, ...updated } : j)));
-      setModalOpen(false);
-    } catch {
-      // Handled by interceptor
-    } finally {
-      setSubmittingEdit(false);
+    } catch (err) {
+      console.error('Failed to delete job', err);
     }
   };
 
   if (loading) {
     return (
-      <div className="space-y-4 animate-fade-in">
-        <CardSkeleton lines={4} />
+      <div className="space-y-6 animate-fade-in w-full pb-16">
+        <CardSkeleton lines={5} />
       </div>
     );
   }
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex items-center justify-between mb-6">
+    <div className="animate-fade-in space-y-8 w-full pb-20 font-sans text-slate-800">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Manage Jobs</h1>
-          <p className="text-sm text-slate-500 mt-1">View, edit, toggle status, or delete your job listings</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Manage Job Postings</h1>
+          <p className="text-xs sm:text-base text-slate-500 mt-1 font-medium">
+            View active listings, track candidate applications, toggle status, and run AI multi-criteria screening
+          </p>
         </div>
         <Link to="/employer/post-job">
-          <Button size="md">+ Post New Job</Button>
+          <Button size="md" className="shadow-md shadow-accent-500/20 font-bold text-xs sm:text-sm w-full sm:w-auto">
+            <PlusCircle className="w-4 h-4 mr-2" />
+            Post New Job
+          </Button>
         </Link>
       </div>
 
       {jobs.length === 0 ? (
-        <Card padding="lg" className="text-center">
-          <Briefcase className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-sm text-slate-500">No jobs posted yet</p>
+        <Card padding="md" className="text-center py-16">
+          <div className="w-16 h-16 rounded-2xl bg-accent-50 text-accent-500 flex items-center justify-center mx-auto mb-3">
+            <Briefcase className="w-8 h-8" />
+          </div>
+          <h3 className="text-xl font-black text-slate-800 mb-1">No jobs posted yet</h3>
+          <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto mb-5 font-medium leading-relaxed">
+            Post your first job listing to start receiving candidate applications, automated multi-criteria ranking, and AI resume screening.
+          </p>
           <Link to="/employer/post-job">
-            <Button size="sm" className="mt-3">Post Job</Button>
+            <Button size="md" className="font-bold text-xs sm:text-sm">
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Post Your First Job
+            </Button>
           </Link>
         </Card>
       ) : (
-        <Card padding="none">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left py-3.5 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Title</th>
-                  <th className="text-left py-3.5 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                  <th className="text-left py-3.5 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Applicants</th>
-                  <th className="text-left py-3.5 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Posted Date</th>
-                  <th className="text-right py-3.5 px-5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {jobs.map((job) => (
-                  <tr key={job._id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3.5 px-5 font-medium text-slate-900">
-                      <Link to={`/employer/jobs/${job._id}/applicants`} className="hover:text-accent-600 transition-colors">
-                        {job.title}
-                      </Link>
-                    </td>
-                    <td className="py-3.5 px-5">
-                      <Badge variant={job.status === 'open' ? 'success' : 'neutral'} size="sm">
-                        {job.status}
-                      </Badge>
-                    </td>
-                    <td className="py-3.5 px-5">
-                      <Link
-                        to={`/employer/jobs/${job._id}/applicants`}
-                        className="inline-flex items-center gap-1.5 text-accent-600 hover:text-accent-700 font-medium"
-                      >
-                        <Users className="w-4 h-4" />
-                        {job.applicantCount || 0} applicants
-                      </Link>
-                    </td>
-                    <td className="py-3.5 px-5 text-slate-500">
-                      {new Date(job.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="py-3.5 px-5 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => openEditModal(job)}
-                          className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors"
-                          title="Edit job"
+        <div className="space-y-4 sm:space-y-5">
+          {jobs.map((job) => (
+            <Card key={job._id} padding="md" className="hover:border-accent-300 transition-all shadow-sm bg-white border-2 border-slate-200/80">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
+                <div className="space-y-2.5">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <Link
+                      to={`/employer/jobs/${job._id}/applicants`}
+                      className="text-lg sm:text-2xl font-black text-slate-900 hover:text-accent-600 transition-colors"
+                    >
+                      {job.title}
+                    </Link>
+                    <Badge variant={job.status === 'open' ? 'success' : 'neutral'} size="sm">
+                      {job.status === 'open' ? 'Active / Open' : 'Closed'}
+                    </Badge>
+                    {job.job_type && (
+                      <span className="text-[11px] sm:text-xs font-bold px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded-lg border border-slate-200 uppercase tracking-wider">
+                        {job.job_type}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-5 text-xs sm:text-sm text-slate-500 font-medium">
+                    {job.location && (
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                        {job.location}
+                      </span>
+                    )}
+                    {job.salary && (
+                      <span className="flex items-center gap-1">
+                        <DollarSign className="w-3.5 h-3.5 text-slate-400" />
+                        {job.salary}
+                      </span>
+                    )}
+                    <span>Posted on {new Date(job.createdAt).toLocaleDateString()}</span>
+                  </div>
+
+                  {/* Required Skills list */}
+                  {job.skills_required?.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Skills:</span>
+                      {job.skills_required.map((skill, sIdx) => (
+                        <span
+                          key={sIdx}
+                          className="px-2 py-0.5 bg-accent-50 text-accent-700 border border-accent-200 text-[11px] font-bold rounded-lg"
                         >
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => toggleJobStatus(job._id, job.status)}
-                          className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-slate-100 transition-colors"
-                          title={job.status === 'open' ? 'Close job' : 'Reopen job'}
-                        >
-                          {job.status === 'open' ? <ToggleRight className="w-5 h-5 text-emerald-500" /> : <ToggleLeft className="w-5 h-5" />}
-                        </button>
-                        <button
-                          onClick={() => deleteJob(job._id)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
-                          title="Delete job"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-100">
+                  <Link to={`/employer/jobs/${job._id}/applicants`} className="flex-1 sm:flex-initial">
+                    <Button variant="secondary" size="sm" className="font-extrabold text-xs shadow-2xs w-full">
+                      <Users className="w-3.5 h-3.5 mr-1.5 text-accent-600" />
+                      Applicants ({job.applicantCount || 0})
+                    </Button>
+                  </Link>
+
+                  <Link to={`/employer/jobs/${job._id}/applicants`} className="flex-1 sm:flex-initial">
+                    <Button size="sm" className="font-extrabold text-xs shadow-xs flex items-center justify-center gap-1.5 w-full">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      AI Screen
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Button>
+                  </Link>
+
+                  <button
+                    onClick={() => toggleJobStatus(job._id, job.status)}
+                    title={job.status === 'open' ? 'Deactivate job' : 'Activate job'}
+                    className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors"
+                  >
+                    {job.status === 'open' ? (
+                      <ToggleRight className="w-5 h-5 text-success-600" />
+                    ) : (
+                      <ToggleLeft className="w-5 h-5 text-slate-400" />
+                    )}
+                  </button>
+
+                  <button
+                    onClick={() => deleteJob(job._id)}
+                    title="Delete job post"
+                    className="p-2 rounded-xl border border-danger-200 hover:bg-danger-50 text-danger-600 transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
       )}
-
-      {/* Edit Job Modal */}
-      <Modal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        title="Edit Job Posting"
-      >
-        <form onSubmit={handleSaveEdit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Job Title</label>
-            <input
-              type="text"
-              required
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Job Type</label>
-              <select
-                value={editType}
-                onChange={(e) => setEditType(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
-              >
-                <option value="full-time">Full-Time</option>
-                <option value="part-time">Part-Time</option>
-                <option value="contract">Contract</option>
-                <option value="remote">Remote</option>
-                <option value="internship">Internship</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Location</label>
-              <input
-                type="text"
-                value={editLocation}
-                onChange={(e) => setEditLocation(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
-                placeholder="e.g. San Francisco, CA"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Salary Range</label>
-              <input
-                type="text"
-                value={editSalary}
-                onChange={(e) => setEditSalary(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
-                placeholder="e.g. $120k - $150k"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Required Skills (comma-separated)</label>
-              <input
-                type="text"
-                value={editSkills}
-                onChange={(e) => setEditSkills(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
-                placeholder="React, Node.js, TypeScript"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Description</label>
-            <textarea
-              rows={4}
-              required
-              value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm resize-none"
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="ghost" onClick={() => setModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" loading={submittingEdit}>
-              Save Changes
-            </Button>
-          </div>
-        </form>
-      </Modal>
     </div>
   );
 }

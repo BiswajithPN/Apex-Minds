@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema(
   {
@@ -10,6 +9,10 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minlength: [2, 'Full name must be at least 2 characters'],
       maxlength: [100, 'Full name cannot exceed 100 characters'],
+      validate: {
+        validator: (v) => v && v.trim().length >= 2,
+        message: 'Full name must be at least 2 non-empty characters',
+      },
     },
     email: {
       type: String,
@@ -18,6 +21,7 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
       match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,})+$/, 'Please enter a valid email address'],
+      index: true,
     },
     password: {
       type: String,
@@ -37,10 +41,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['jobseeker', 'employer', 'admin'],
       default: 'jobseeker',
+      index: true,
     },
     is_active: {
       type: Boolean,
       default: true,
+      index: true,
     },
     is_verified: {
       type: Boolean,
@@ -56,14 +62,6 @@ const userSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
-    resetPasswordToken: {
-      type: String,
-      select: false,
-    },
-    resetPasswordExpire: {
-      type: Date,
-      select: false,
-    },
   },
   { timestamps: true }
 );
@@ -74,15 +72,10 @@ userSchema.virtual('isLocked').get(function () {
 });
 
 // Pre-save hook: Hash password with 12 salt rounds
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password') || !this.password) return next();
-  try {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (err) {
-    next(err);
-  }
+userSchema.pre('save', async function () {
+  if (!this.isModified('password') || !this.password) return;
+  const salt = await bcrypt.genSalt(12);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
 // Method: Compare password
@@ -93,15 +86,19 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 
 // Method: Increment failed login attempts (5 failed attempts -> 15 min lock)
 userSchema.methods.incLoginAttempts = async function () {
+  // If lock has expired, reset counter
   if (this.lockUntil && this.lockUntil < Date.now()) {
     return await this.updateOne({
       $set: { loginAttempts: 1 },
       $unset: { lockUntil: 1 },
     });
   }
-  const updates = { $inc: { loginAttempts: 1 } };
-  if (this.loginAttempts + 1 >= 5 && !this.isLocked) {
-    updates.$set = { lockUntil: Date.now() + 15 * 60 * 1000 }; // 15 min lock
+
+  const newCount = (this.loginAttempts || 0) + 1;
+  const updates = { $set: { loginAttempts: newCount } };
+  // Lock after exactly 5 failed attempts
+  if (newCount >= 5) {
+    updates.$set.lockUntil = Date.now() + 15 * 60 * 1000; // 15 min lock
   }
   return await this.updateOne(updates);
 };
@@ -114,22 +111,12 @@ userSchema.methods.resetLoginAttempts = async function () {
   });
 };
 
-// Method: Generate and hash password reset token (valid for 1 hour)
-userSchema.methods.getResetPasswordToken = function () {
-  const resetToken = crypto.randomBytes(20).toString('hex');
-  this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-  this.resetPasswordExpire = Date.now() + 60 * 60 * 1000; // 1 hour
-  return resetToken;
-};
-
 // toJSON method: Strip sensitive fields
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
   delete obj.password;
   delete obj.loginAttempts;
   delete obj.lockUntil;
-  delete obj.resetPasswordToken;
-  delete obj.resetPasswordExpire;
   return obj;
 };
 

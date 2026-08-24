@@ -59,7 +59,7 @@ const screenResumeFile = async (req, res, next) => {
     }
 
     // 2. Identity Redaction (Fair Hiring / Zero Demographic Bias)
-    const { redactedText, redactionLog } = redactIdentityFields(extractedRawText);
+    const { cleanedText: redactedText, redactionLog } = redactIdentityFields(extractedRawText);
 
     // 3. Algorithmic Screening
     const screeningResult = screenResumeLocal(jobDescription, redactedText, redactionLog);
@@ -102,7 +102,7 @@ const screenResumeText = async (req, res, next) => {
     }
 
     // 1. Identity Redaction
-    const { redactedText, redactionLog } = redactIdentityFields(resumeText);
+    const { cleanedText: redactedText, redactionLog } = redactIdentityFields(resumeText);
 
     // 2. Algorithmic Screening
     const screeningResult = screenResumeLocal(jobDescription, redactedText, redactionLog);
@@ -176,7 +176,7 @@ const screenBatchResumes = async (req, res, next) => {
           return { filename: item.originalname, error: 'Insufficient text extracted' };
         }
 
-        const { redactedText, redactionLog } = redactIdentityFields(rawText);
+        const { cleanedText: redactedText, redactionLog } = redactIdentityFields(rawText);
         const screeningResult = screenResumeLocal(jobDescription, redactedText, redactionLog);
         const { decision, reasons, comprehensiveReport } = generateDecision(screeningResult);
 
@@ -255,13 +255,13 @@ const auditJD = async (req, res, next) => {
 const screenApplication = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const application = await Application.findById(id).populate('job').populate('applicant');
+    const application = await Application.findById(id).populate('jobId').populate('jobSeekerId', 'full_name email avatar');
 
     if (!application) {
       return sendError(res, 400, 'Application not found');
     }
 
-    const job = application.job;
+    const job = application.jobId;
     if (!job) {
       return sendError(res, 400, 'Associated job not found');
     }
@@ -269,18 +269,22 @@ const screenApplication = async (req, res, next) => {
     const jobDescription = `${job.title}\n${job.description}\nRequired Skills: ${(job.skills_required || []).join(', ')}`;
 
     let candidateText = '';
-    if (application.applicant) {
-      const p = application.applicant;
+    if (application.jobSeekerId) {
+      const p = application.jobSeekerId;
       candidateText += `Skills: ${(p.skills || []).join(', ')}\n`;
       candidateText += `Experience: ${p.experience || ''}\n`;
       candidateText += `Education: ${p.education || ''}\n`;
       candidateText += `Bio: ${p.bio || ''}\n`;
     }
-    if (application.resume_text) {
-      candidateText += `\n${application.resume_text}`;
+    // Fetch resume_text from JobSeekerProfile (Application model does not store it)
+    const JobSeekerProfile = require('../models/JobSeekerProfile');
+    const userId = application.jobSeekerId?._id || application.jobSeekerId;
+    const profile = await JobSeekerProfile.findOne({ userId }).select('+resume_text');
+    if (profile?.resume_text) {
+      candidateText += `\n${profile.resume_text}`;
     }
 
-    const { redactedText, redactionLog } = redactIdentityFields(candidateText);
+    const { cleanedText: redactedText, redactionLog } = redactIdentityFields(candidateText);
     const screeningResult = screenResumeLocal(jobDescription, redactedText, redactionLog);
     const { decision, reasons, comprehensiveReport } = generateDecision(screeningResult);
 
@@ -359,7 +363,7 @@ const screenJobApplicants = async (req, res, next) => {
         }
 
         // Demographically blind PII scrubbing
-        const { redactedText, redactionLog } = redactIdentityFields(candidateText);
+        const { cleanedText: redactedText, redactionLog } = redactIdentityFields(candidateText);
 
         // Algorithmic evaluation against the specific job post
         const screeningResult = screenResumeLocal(jobRequirementsText, redactedText, redactionLog);

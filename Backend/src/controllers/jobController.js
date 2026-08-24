@@ -9,8 +9,6 @@ const asyncHandler = require('../utils/asyncHandler');
 // GET /api/jobs (Search + Filter + Pagination)
 const getJobs = asyncHandler(async (req, res) => {
   const { search, q, type, location, page = 1, limit = 9 } = req.query;
-  const pageNum = Math.max(parseInt(page, 10) || 1, 1);
-  const limitNum = Math.min(Math.max(parseInt(limit, 10) || 9, 1), 100);
 
   const query = { status: 'open', flagged: false };
 
@@ -34,15 +32,15 @@ const getJobs = asyncHandler(async (req, res) => {
     query.location = { $regex: sanitizedLoc, $options: 'i' };
   }
 
-  const skip = (pageNum - 1) * limitNum;
+  const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
   const totalJobs = await Job.countDocuments(query);
-  const totalPages = Math.ceil(totalJobs / limitNum) || 1;
+  const totalPages = Math.ceil(totalJobs / parseInt(limit, 10)) || 1;
 
   const jobs = await Job.find(query)
     .populate('employerId', 'full_name email avatar')
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(limitNum);
+    .limit(parseInt(limit, 10));
 
   const formattedJobs = await Promise.all(
     jobs.map(async (j) => {
@@ -122,6 +120,15 @@ const applyForJob = asyncHandler(async (req, res) => {
   const existingApp = await Application.findOne({ jobId: job._id, jobSeekerId: req.user._id });
   if (existingApp) {
     return sendError(res, 409, 'You have already applied for this job'); // 409 Conflict
+  }
+
+  // Validate profile is complete before applying
+  const profileCheck = await JobSeekerProfile.findOne({ userId: req.user._id });
+  if (!profileCheck) {
+    return sendError(res, 400, 'Please complete your profile before applying to jobs.');
+  }
+  if (!profileCheck.skills || profileCheck.skills.length === 0) {
+    return sendError(res, 400, 'Please add at least one skill to your profile before applying.');
   }
 
   const profile = (await JobSeekerProfile.findOne({ userId: req.user._id })) || { skills: [] };

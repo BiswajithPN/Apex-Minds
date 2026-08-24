@@ -1,4 +1,4 @@
-const { screenResumeLocal } = require('./resumeScreener');
+const { screenResumeLocal } = require('../resumeScreener');
 
 const jd = `
 We are looking for a Full Stack Developer with at least 3 years of experience.

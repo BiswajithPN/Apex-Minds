@@ -22,7 +22,7 @@ export default function ChangePassword() {
 
   const onSubmit = async (formData) => {
     try {
-      await api.put('/users/change-password', {
+      await api.post('/auth/change-password', {
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
       });
@@ -83,7 +83,7 @@ export default function ChangePassword() {
                 type="password"
                 {...register('newPassword', {
                   required: 'New password is required',
-                  minLength: { value: 6, message: 'At least 6 characters' },
+                  minLength: { value: 8, message: 'At least 8 characters' },
                 })}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-transparent transition-shadow"
               />

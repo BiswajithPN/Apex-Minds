@@ -1,20 +1,38 @@
 {
-  "name": "hackathon",
-  "version": "1.0.0",
-  "description": "",
-  "main": "debug_test.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "name": "hirehub-unified-project",
+  "version": "2.0.0",
+  "description": "HireHub AI Job Marketplace & Bias-Aware Multi-Pass OCR Resume Screener Suite",
+  "main": "start.js",
   "type": "commonjs",
+  "scripts": {
+    "dev": "node start.js",
+    "start": "node start.js",
+    "dev:backend": "npm run start --prefix Backend",
+    "dev:frontend": "npm run dev --prefix Frontend",
+    "server": "npm run start --prefix Backend",
+    "client": "npm run dev --prefix Frontend",
+    "build": "npm run build --prefix Frontend",
+    "seed": "npm run seed --prefix Backend",
+    "install:all": "npm install && npm install --prefix Backend && npm install --prefix Frontend"
+  },
+  "keywords": [
+    "hirehub",
+    "resume-screener",
+    "ai",
+    "ocr",
+    "bias-aware",
+    "mern",
+    "tesseract"
+  ],
+  "author": "HireHub Team",
+  "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.6",
-    "express": "^5.2.1",
-    "multer": "^2.2.0",
-    "sharp": "^0.35.3",
-    "tesseract.js": "^7.0.0"
+    "concurrently": "^9.1.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.33.5",
+    "tesseract.js": "^5.1.1"
   }
 }

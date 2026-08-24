@@ -17,18 +17,6 @@ const server = app.listen(PORT, () => {
   `);
 });
 
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`[Server Warning] Port ${PORT} is currently occupied. Retrying in 1s...`);
-    setTimeout(() => {
-      server.close();
-      server.listen(PORT);
-    }, 1000);
-  } else {
-    console.error('[Server Error]', err);
-  }
-});
-
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   console.error('[Unhandled Rejection]', err.message || err);

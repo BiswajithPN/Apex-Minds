@@ -6,7 +6,7 @@ const EmployerProfile = require('../models/EmployerProfile');
 const generateToken = require('../utils/generateToken');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 const asyncHandler = require('../utils/asyncHandler');
-const { sendAccountConfirmationEmail, sendPasswordChangeEmail, sendPasswordResetEmail } = require('../services/emailService');
+const { sendAccountConfirmationEmail, sendPasswordChangeEmail } = require('../services/emailService');
 
 const googleClient = new OAuth2Client();
 
@@ -14,45 +14,33 @@ const googleClient = new OAuth2Client();
 const registerUser = asyncHandler(async (req, res) => {
   const { full_name, email, password, role } = req.body;
 
-  if (!full_name || !full_name.trim()) {
-    return sendError(res, 400, 'Full name is required');
-  }
-
-  if (!email || !email.trim()) {
-    return sendError(res, 400, 'Email address is required');
-  }
-
-  const sanitizedEmail = email.trim().toLowerCase();
-  const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,})+$/;
-  if (!emailRegex.test(sanitizedEmail)) {
-    return sendError(res, 400, 'Please enter a valid email address');
-  }
-
-  if (!password || password.length < 8) {
-    return sendError(res, 400, 'Password must be at least 8 characters long');
+  if (!full_name || !email || !password) {
+    return sendError(res, 400, 'Please provide full_name, email, and password');
   }
 
   const allowedRoles = ['jobseeker', 'employer'];
   const userRole = allowedRoles.includes(role) ? role : 'jobseeker';
 
-  const userExists = await User.findOne({ email: sanitizedEmail });
+  const userExists = await User.findOne({ email: email.toLowerCase() });
   if (userExists) {
-    return sendError(res, 400, 'An account with this email address already exists. Please sign in instead.');
+    if (!userExists.is_active) {
+      return sendError(res, 403, 'This account has been deactivated. Please contact support to reactivate.');
+    }
+    return sendError(res, 400, 'Account already exists with this email. Please sign in instead.');
   }
 
   const user = await User.create({
-    full_name: full_name.trim(),
-    email: sanitizedEmail,
+    full_name,
+    email: email.toLowerCase(),
     password,
     role: userRole,
-    is_active: true,
   });
 
   // Create empty profile
   if (userRole === 'jobseeker') {
-    await JobSeekerProfile.create({ userId: user._id, full_name: user.full_name });
+    await JobSeekerProfile.create({ userId: user._id, full_name });
   } else if (userRole === 'employer') {
-    await EmployerProfile.create({ userId: user._id, company_name: user.full_name });
+    await EmployerProfile.create({ userId: user._id, company_name: full_name });
   }
 
   // Trigger welcome / confirmation email
@@ -70,10 +58,10 @@ const registerUser = asyncHandler(async (req, res) => {
         name: user.full_name,
         email: user.email,
         role: user.role,
-        avatar: user.avatar || '',
+        avatar: user.avatar,
       },
     },
-    'Account created successfully'
+    'Account registered successfully'
   );
 });
 
@@ -85,15 +73,13 @@ const loginUser = asyncHandler(async (req, res) => {
     return sendError(res, 400, 'Please provide email and password');
   }
 
-  const sanitizedEmail = String(email).toLowerCase().trim();
-  const user = await User.findOne({ email: sanitizedEmail }).select('+password +loginAttempts +lockUntil');
-
+  const user = await User.findOne({ email: email.toLowerCase() }).select('+password +loginAttempts +lockUntil');
   if (!user) {
-    return sendError(res, 404, 'No account found with this email address. Please sign up first.');
+    return sendError(res, 404, 'Account not found with this email. Please sign up first.');
   }
 
   if (!user.is_active) {
-    return sendError(res, 403, 'Your account has been deactivated. Please contact support.');
+    return sendError(res, 403, 'Account has been deactivated. Please contact support.');
   }
 
   if (user.isLocked) {
@@ -107,11 +93,7 @@ const loginUser = asyncHandler(async (req, res) => {
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
     await user.incLoginAttempts();
-    const attemptsLeft = Math.max(0, 5 - ((user.loginAttempts || 0) + 1));
-    const hint = attemptsLeft > 0
-      ? ` (${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining before lockout)`
-      : ' — Account is now locked for 15 minutes.';
-    return sendError(res, 401, `Incorrect password. Please try again.${hint}`);
+    return sendError(res, 401, 'Invalid password. Please try again.');
   }
 
   if (user.loginAttempts > 0) {
@@ -130,7 +112,7 @@ const loginUser = asyncHandler(async (req, res) => {
         name: user.full_name,
         email: user.email,
         role: user.role,
-        avatar: user.avatar || '',
+        avatar: user.avatar,
       },
     },
     'Login successful'
@@ -158,32 +140,18 @@ const googleAuth = asyncHandler(async (req, res) => {
 
   let user = await User.findOne({ email: normalizedEmail });
 
-  // 1. LOGIN FLOW (isSignUp === false)
-  if (!isSignUp) {
-    if (!user) {
-      return sendError(
-        res,
-        404,
-        `No account found for ${normalizedEmail}. Please sign up first before logging in.`
-      );
-    }
-
-    if (!user.google_id) {
-      user.google_id = google_id;
-      if (picture && !user.avatar) user.avatar = picture;
-      await user.save();
-    }
-  } 
-  // 2. SIGNUP FLOW (isSignUp === true)
-  else {
+  if (isSignUp) {
+    // ── SIGN UP FLOW ──────────────────────────────────────────────────────────
     if (user) {
+      // Account already exists — block duplicate sign-up
       return sendError(
         res,
         400,
-        `An account with email ${normalizedEmail} already exists. Please sign in instead.`
+        'An account already exists with this Google email. Please sign in instead.'
       );
     }
 
+    // Create new account with the selected role
     const allowedRoles = ['jobseeker', 'employer'];
     const userRole = allowedRoles.includes(role) ? role : 'jobseeker';
     const randomHash = crypto.randomBytes(16).toString('hex');
@@ -195,6 +163,8 @@ const googleAuth = asyncHandler(async (req, res) => {
       avatar: picture || '',
       role: userRole,
       password: randomHash,
+      is_verified: true,
+      is_active: true,
     });
 
     if (userRole === 'jobseeker') {
@@ -203,15 +173,32 @@ const googleAuth = asyncHandler(async (req, res) => {
       await EmployerProfile.create({ userId: user._id, company_name: user.full_name });
     }
 
-    // Trigger welcome / confirmation email for new Google signup
     sendAccountConfirmationEmail(user.email, user.full_name);
+
+  } else {
+    // ── SIGN IN FLOW ──────────────────────────────────────────────────────────
+    if (!user) {
+      // No account found — block sign-in and prompt to register
+      return sendError(
+        res,
+        404,
+        'No account found with this Google email. Please create an account first.'
+      );
+    }
+
+    // Link Google ID and avatar if not yet linked
+    if (!user.google_id) {
+      user.google_id = google_id;
+      if (picture && !user.avatar) user.avatar = picture;
+      await user.save();
+    }
   }
 
   const token = generateToken({ id: user._id, role: user.role, email: user.email });
 
   return sendSuccess(
     res,
-    isSignUp ? 201 : 200,
+    200,
     {
       token,
       user: {
@@ -222,7 +209,7 @@ const googleAuth = asyncHandler(async (req, res) => {
         avatar: user.avatar,
       },
     },
-    isSignUp ? 'Google registration successful' : 'Google login successful'
+    'Google authentication successful'
   );
 });
 
@@ -240,79 +227,22 @@ const getMe = asyncHandler(async (req, res) => {
   });
 });
 
-// POST /api/auth/forgot-password
-const forgotPassword = asyncHandler(async (req, res) => {
-  const { email } = req.body;
-  if (!email) {
-    return sendError(res, 400, 'Please provide an email address');
-  }
-
-  let generatedResetUrl = null;
-  let etherealPreviewUrl = null;
-
-  try {
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (user) {
-      const resetToken = user.getResetPasswordToken();
-      await user.save({ validateBeforeSave: false });
-
-      const clientUrl = req.headers.origin || 'http://localhost:5173';
-      generatedResetUrl = `${clientUrl}/reset-password/${resetToken}`;
-
-      // sendPasswordResetEmail returns an Ethereal preview URL in dev mode
-      etherealPreviewUrl = await sendPasswordResetEmail(user.email, generatedResetUrl);
-    }
-  } catch (err) {
-    console.error('[Forgot Password Error]', err.message || err);
-  }
-
-  return sendSuccess(
-    res,
-    200,
-    {
-      resetUrl: generatedResetUrl,
-      previewUrl: etherealPreviewUrl, // e.g. https://ethereal.email/message/... (dev only)
-    },
-    'If an account with that email exists, a password reset link has been generated.'
-  );
-});
-
-// POST /api/auth/reset-password/:resetToken
-const resetPassword = asyncHandler(async (req, res) => {
-  const { password } = req.body;
-  if (!password || password.length < 8) {
-    return sendError(res, 400, 'Please provide a password with at least 8 characters');
-  }
-
-  const resetPasswordToken = crypto.createHash('sha256').update(req.params.resetToken).digest('hex');
-
-  const user = await User.findOne({
-    resetPasswordToken,
-    resetPasswordExpire: { $gt: Date.now() },
-  });
-
-  if (!user) {
-    return sendError(res, 400, 'Invalid or expired password reset token');
-  }
-
-  user.password = password;
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpire = undefined;
-  await user.save();
-
-  return sendSuccess(res, 200, {}, 'Password reset successful. You can now log in with your new password.');
-});
-
 // POST /api/auth/change-password
 const changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
   const user = await User.findById(req.user._id).select('+password');
 
-  if (user.password) {
-    const isMatch = await user.comparePassword(currentPassword);
-    if (!isMatch) {
-      return sendError(res, 400, 'Current password is incorrect');
-    }
+  if (!currentPassword) {
+    return sendError(res, 400, 'Current password is required');
+  }
+
+  if (!user.password) {
+    return sendError(res, 400, 'Account uses social login. Password change not available.');
+  }
+
+  const isMatch = await user.comparePassword(currentPassword);
+  if (!isMatch) {
+    return sendError(res, 400, 'Current password is incorrect');
   }
 
   user.password = newPassword;
@@ -330,6 +260,4 @@ module.exports = {
   googleAuth,
   getMe,
   changePassword,
-  forgotPassword,
-  resetPassword,
 };

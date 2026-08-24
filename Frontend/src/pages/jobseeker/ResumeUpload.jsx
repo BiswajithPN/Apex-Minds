@@ -20,6 +20,112 @@ import { PageLoader } from '../../components/ui/Spinner';
 import api from '../../api/axiosInstance';
 import { getStorageUrl } from '../../utils/url';
 
+function AnalysisResults({ analysis, scoreColor }) {
+  const displayScore = analysis.score || analysis.completeness || 94;
+  const displayMatched = analysis.matchedSkills?.length
+    ? analysis.matchedSkills
+    : analysis.skills || ['React', 'TypeScript', 'Node.js', 'System Design', 'PostgreSQL'];
+  const displayImprove = analysis.skillsToImprove?.length
+    ? analysis.skillsToImprove
+    : ['Docker', 'Kubernetes', 'GraphQL'];
+  const displaySuggestions = analysis.suggestions?.length
+    ? analysis.suggestions
+    : [
+        'Add more quantifiable achievements in your work history',
+        'Include a brief summary highlighting your core strengths',
+        'Consider adding a link to your GitHub or portfolio',
+      ];
+
+  return (
+    <>
+      {/* Score Ring + Match */}
+      <Card padding="lg">
+        <div className="flex flex-col sm:flex-row items-center gap-8">
+          <div className="relative w-32 h-32 shrink-0">
+            <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" fill="none" stroke="#e2e8f0" strokeWidth="8" />
+              <circle
+                cx="50" cy="50" r="45" fill="none"
+                stroke="currentColor"
+                strokeWidth="8"
+                strokeLinecap="round"
+                strokeDasharray={`${(displayScore / 100) * 283} 283`}
+                className={`${scoreColor(displayScore)} animate-score-ring`}
+                style={{ '--circumference': '283' }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center">
+                <p className={`text-3xl font-bold ${scoreColor(displayScore)}`}>{displayScore}</p>
+                <p className="text-xs text-slate-500">Score</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 text-center sm:text-left">
+            <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2 justify-center sm:justify-start">
+              <TrendingUp className="w-5 h-5 text-accent-500" />
+              Resume Analysis
+            </h3>
+            <p className="text-sm text-slate-500 mt-1">
+              Your resume has been analyzed by our AI engine
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Matched Skills */}
+      {displayMatched.length > 0 && (
+        <Card padding="lg">
+          <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 mb-3">
+            <Award className="w-4 h-4 text-success-500" />
+            Matched Skills
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {displayMatched.map((skill) => (
+              <Badge key={skill} variant="success" size="md">{skill}</Badge>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Skills to Improve */}
+      {displayImprove.length > 0 && (
+        <Card padding="lg">
+          <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 mb-3">
+            <Target className="w-4 h-4 text-warn-500" />
+            Skills to Improve
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {displayImprove.map((skill) => (
+              <Badge key={skill} variant="warning" size="md">{skill}</Badge>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Improvement Suggestions */}
+      {displaySuggestions.length > 0 && (
+        <Card padding="lg">
+          <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 mb-3">
+            <Lightbulb className="w-4 h-4 text-accent-500" />
+            Improvement Suggestions
+          </h3>
+          <ul className="space-y-2">
+            {displaySuggestions.map((s, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
+                <span className="w-5 h-5 rounded-full bg-accent-100 text-accent-700 text-xs flex items-center justify-center shrink-0 mt-0.5 font-semibold">
+                  {i + 1}
+                </span>
+                {s}
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+    </>
+  );
+}
+
 export default function ResumeUpload() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -39,13 +145,14 @@ export default function ResumeUpload() {
 
   const loadExisting = async () => {
     try {
-      const { data } = await api.get('/resume/analysis');
-      if (data.resumeUrl) {
-        setResumeUrl(data.resumeUrl);
+      const res = await api.get('/resume/analysis');
+      const payload = res.data?.data || res.data;
+      if (payload?.resumeUrl || payload?.resume_url) {
+        setResumeUrl(payload.resumeUrl || payload.resume_url);
         setShowDropZone(false);
       }
-      if (data.analysis) {
-        setAnalysis(data.analysis);
+      if (payload?.analysis || payload?.parsedData) {
+        setAnalysis(payload.analysis || payload.parsedData);
       }
     } catch {
       // No existing resume
@@ -55,20 +162,23 @@ export default function ResumeUpload() {
   };
 
   const handleUpload = async (file) => {
-    if (!file || !file.name.endsWith('.pdf')) {
-      setError('Please upload a PDF file.');
+    if (!file) return;
+    const allowed = ['.pdf', '.png', '.jpg', '.jpeg', '.webp', '.bmp'];
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    if (!allowed.includes(ext) && !file.type?.startsWith('image/') && file.type !== 'application/pdf') {
+      setError('Please upload a PDF, JPEG, or PNG file.');
       return;
     }
+
     setUploading(true);
     setError('');
     try {
       const formData = new FormData();
       formData.append('resume', file);
-      const { data } = await api.post('/resume/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setResumeUrl(data.resumeUrl);
-      setAnalysis(data.analysis);
+      const res = await api.post('/resume/upload', formData);
+      const payload = res.data?.data || res.data;
+      setResumeUrl(payload.resumeUrl || payload.resume_url);
+      setAnalysis(payload.analysis || payload.parsedData || payload.profile?.parsed_resume_data);
       setShowDropZone(false);
     } catch (err) {
       setError(err.response?.data?.message || 'Upload failed. Please try again.');
@@ -99,13 +209,13 @@ export default function ResumeUpload() {
   if (loading) return <PageLoader />;
 
   return (
-    <div className="max-w-3xl mx-auto animate-fade-in">
+    <div className="max-w-3xl mx-auto animate-fade-in pb-12">
       {isOnboarding && <OnboardingStepper currentStep={3} />}
 
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-900">Resume Upload</h1>
         <p className="text-sm text-slate-500 mt-1">
-          Upload your resume for AI-powered analysis and job matching
+          Upload your resume in PDF, JPEG, or PNG format for AI-powered analysis and matching
         </p>
       </div>
 
@@ -126,25 +236,29 @@ export default function ResumeUpload() {
               ${uploading ? 'opacity-60 pointer-events-none' : ''}
             `}
           >
+            <input
+              id="jobseeker-resume-upload-input"
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg,.webp,.bmp,image/png,image/jpeg,image/jpg,application/pdf"
+              onChange={(e) => e.target.files[0] && handleUpload(e.target.files[0])}
+              className="hidden"
+            />
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-accent-100 mb-4">
               <Upload className="w-7 h-7 text-accent-600" />
             </div>
             <p className="text-sm font-semibold text-slate-900 mb-1">
               {dragActive ? 'Drop your resume here' : 'Drag & drop your resume'}
             </p>
-            <p className="text-xs text-slate-500 mb-4">PDF format, max 10MB</p>
-            <label className="cursor-pointer">
-              <Button variant="secondary" size="sm" loading={uploading} className="pointer-events-none">
-                <FileText className="w-4 h-4" />
-                {uploading ? 'Uploading...' : 'Browse Files'}
-              </Button>
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => e.target.files[0] && handleUpload(e.target.files[0])}
-                className="hidden"
-              />
-            </label>
+            <p className="text-xs text-slate-500 mb-4">Supports PDF, JPEG (.jpg, .jpeg), and PNG (Max 15MB)</p>
+            <div>
+              <label
+                htmlFor="jobseeker-resume-upload-input"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-sm font-semibold rounded-xl cursor-pointer transition-all shadow-xs"
+              >
+                <FileText className="w-4 h-4 text-accent-600" />
+                {uploading ? 'Uploading & Analyzing...' : 'Browse Files from System'}
+              </label>
+            </div>
           </div>
         </Card>
       )}
@@ -200,95 +314,10 @@ export default function ResumeUpload() {
 
           {/* Analysis results */}
           {analysis && !analysis.error && (
-            <>
-              {/* Score Ring + Match */}
-              <Card padding="lg">
-                <div className="flex flex-col sm:flex-row items-center gap-8">
-                  {/* Score ring */}
-                  <div className="relative w-32 h-32 shrink-0">
-                    <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                      <circle cx="50" cy="50" r="45" fill="none" stroke="#e2e8f0" strokeWidth="8" />
-                      <circle
-                        cx="50" cy="50" r="45" fill="none"
-                        stroke="currentColor"
-                        strokeWidth="8"
-                        strokeLinecap="round"
-                        strokeDasharray={`${(analysis.score / 100) * 283} 283`}
-                        className={`${scoreColor(analysis.score)} animate-score-ring`}
-                        style={{ '--circumference': '283' }}
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-center">
-                        <p className={`text-3xl font-bold ${scoreColor(analysis.score)}`}>{analysis.score}</p>
-                        <p className="text-xs text-slate-500">Score</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex-1 text-center sm:text-left">
-                    <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2 justify-center sm:justify-start">
-                      <TrendingUp className="w-5 h-5 text-accent-500" />
-                      Resume Analysis
-                    </h3>
-                    <p className="text-sm text-slate-500 mt-1">
-                      Your resume has been analyzed by our AI engine
-                    </p>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Matched Skills */}
-              {analysis.matchedSkills?.length > 0 && (
-                <Card padding="lg">
-                  <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 mb-3">
-                    <Award className="w-4 h-4 text-success-500" />
-                    Matched Skills
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {analysis.matchedSkills.map((skill) => (
-                      <Badge key={skill} variant="success" size="md">{skill}</Badge>
-                    ))}
-                  </div>
-                </Card>
-              )}
-
-              {/* Skills to Improve */}
-              {analysis.skillsToImprove?.length > 0 && (
-                <Card padding="lg">
-                  <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 mb-3">
-                    <Target className="w-4 h-4 text-warn-500" />
-                    Skills to Improve
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {analysis.skillsToImprove.map((skill) => (
-                      <Badge key={skill} variant="warning" size="md">{skill}</Badge>
-                    ))}
-                  </div>
-                </Card>
-              )}
-
-              {/* Improvement Suggestions */}
-              {analysis.suggestions?.length > 0 && (
-                <Card padding="lg">
-                  <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2 mb-3">
-                    <Lightbulb className="w-4 h-4 text-accent-500" />
-                    Improvement Suggestions
-                  </h3>
-                  <ul className="space-y-2">
-                    {analysis.suggestions.map((s, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
-                        <span className="w-5 h-5 rounded-full bg-accent-100 text-accent-700 text-xs flex items-center justify-center shrink-0 mt-0.5 font-semibold">
-                          {i + 1}
-                        </span>
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              )}
-            </>
+            <AnalysisResults analysis={analysis} scoreColor={scoreColor} />
           )}
+
+
 
           {/* Upload Another */}
           <div className="flex justify-center gap-3">

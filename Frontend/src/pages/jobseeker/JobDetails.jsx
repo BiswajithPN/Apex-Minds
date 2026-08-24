@@ -22,6 +22,7 @@ export default function JobDetails() {
   const [applying, setApplying] = useState(false);
   const [applied, setApplied] = useState(false);
   const [applicationStatus, setApplicationStatus] = useState(null);
+  const [applyError, setApplyError] = useState('');
 
   useEffect(() => {
     loadJob();
@@ -33,17 +34,6 @@ export default function JobDetails() {
       setJob(data.job || data);
       setApplied(data.applied || false);
       setApplicationStatus(data.applicationStatus || null);
-
-      // Dedicated single job application status check
-      try {
-        const checkRes = await api.get(`/jobseeker/applications/check/${id}`);
-        if (checkRes.data?.hasApplied) {
-          setApplied(true);
-          setApplicationStatus(checkRes.data.application?.status || 'pending');
-        }
-      } catch {
-        // Fallback to initial job response values
-      }
     } catch {
       // Handle error
     } finally {
@@ -53,12 +43,13 @@ export default function JobDetails() {
 
   const handleApply = async () => {
     setApplying(true);
+    setApplyError('');
     try {
       await api.post('/applications', { jobId: id });
       setApplied(true);
       setApplicationStatus('pending');
-    } catch {
-      // Handled by interceptor
+    } catch (err) {
+      setApplyError(err.response?.data?.message || 'Failed to apply. Please complete your profile first.');
     } finally {
       setApplying(false);
     }
@@ -124,6 +115,13 @@ export default function JobDetails() {
           </div>
         )}
       </Card>
+
+      {/* Apply Error */}
+      {applyError && (
+        <div className="mb-4 px-4 py-3 bg-danger-50 border border-danger-200 text-danger-700 text-sm rounded-xl font-semibold">
+          ⚠️ {applyError}
+        </div>
+      )}
 
       {/* Apply / Status */}
       <Card padding="md" className="mb-6">

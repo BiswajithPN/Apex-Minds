@@ -10,7 +10,6 @@ import api from '../../api/axiosInstance';
 export default function Recommendations() {
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [hasProfile, setHasProfile] = useState(true);
 
   useEffect(() => {
@@ -18,15 +17,12 @@ export default function Recommendations() {
   }, []);
 
   const loadRecommendations = async () => {
-    setLoading(true);
-    setError('');
     try {
-      const { data } = await api.get('/jobseeker/recommendations');
+      const { data } = await api.get('/recommendations');
       setRecommendations(data.recommendations || []);
       setHasProfile(data.hasProfile !== false);
-    } catch (err) {
+    } catch {
       setRecommendations([]);
-      setError(err.response?.data?.message || err.response?.data?.detail || 'Failed to fetch recommendations. Please check network connection.');
     } finally {
       setLoading(false);
     }
@@ -52,13 +48,6 @@ export default function Recommendations() {
           Jobs matched to your profile and skills using AI
         </p>
       </div>
-
-      {error && (
-        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl flex items-center justify-between">
-          <span>{error}</span>
-          <Button size="sm" variant="ghost" onClick={loadRecommendations}>Retry</Button>
-        </div>
-      )}
 
       {/* Empty state */}
       {recommendations.length === 0 ? (

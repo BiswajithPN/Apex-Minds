@@ -1,41 +1,72 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { PlusCircle, CheckCircle2 } from 'lucide-react';
+import { PlusCircle, CheckCircle2, AlertCircle } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import api from '../../api/axiosInstance';
 
 const jobTypeOptions = ['full-time', 'part-time', 'contract', 'remote', 'internship'];
+const experienceOptions = ['entry', 'mid', 'senior', 'lead'];
 
 export default function PostJob() {
   const navigate = useNavigate();
   const [success, setSuccess] = useState(false);
-  const [apiError, setApiError] = useState('');
+  const [serverError, setServerError] = useState('');
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     reset,
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      title: '',
+      description: '',
+      requirements: '',
+      location: '',
+      type: 'full-time',
+      salary: '',
+      skills: '',
+      experience_level: 'mid',
+    }
+  });
 
   const onSubmit = async (formData) => {
-    setApiError('');
+    setServerError('');
     try {
+      const skillsArray = typeof formData.skills === 'string'
+        ? formData.skills.split(',').map((s) => s.trim()).filter(Boolean)
+        : formData.skills;
+
       const payload = {
-        ...formData,
-        skills: formData.skills ? formData.skills.split(',').map((s) => s.trim()).filter(Boolean) : [],
+        title: formData.title,
+        description: formData.description,
+        requirements: formData.requirements || '',
+        location: formData.location || '',
+        type: formData.type,
+        salary: formData.salary || '',
+        skills: skillsArray,
+        experience_level: formData.experience_level || 'mid',
       };
-      await api.post('/employer/jobs', payload);
+
+      // Try employer jobs endpoint first, with fallback to general jobs endpoint
+      try {
+        await api.post('/employer/jobs', payload);
+      } catch {
+        await api.post('/jobs', payload);
+      }
+
       setSuccess(true);
       reset();
       setTimeout(() => {
         setSuccess(false);
         navigate('/employer/jobs');
-      }, 2000);
+      }, 1200);
     } catch (err) {
-      setApiError(err.response?.data?.message || err.response?.data?.detail || 'Failed to create job posting.');
+      setServerError(
+        err.response?.data?.message || err.message || 'Failed to post job. Please check all fields.'
+      );
     }
   };
 
@@ -43,106 +74,117 @@ export default function PostJob() {
     'w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-transparent transition-shadow';
 
   return (
-    <div className="max-w-3xl mx-auto animate-fade-in">
+    <div className="max-w-3xl mx-auto animate-fade-in pb-12">
       <div className="flex items-center gap-3 mb-6">
         <div className="p-2.5 rounded-xl bg-accent-100">
           <PlusCircle className="w-6 h-6 text-accent-600" />
         </div>
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Post a Job</h1>
-          <p className="text-sm text-slate-500">Create a new job listing</p>
+          <p className="text-sm text-slate-500">Create a new job listing with required skills and qualifications</p>
         </div>
       </div>
 
-      {apiError && (
-        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl">
-          {apiError}
-        </div>
-      )}
-
       {success && (
-        <div className="mb-6 flex items-center gap-2 px-4 py-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-xl animate-fade-in">
-          <CheckCircle2 className="w-4 h-4" />
-          Job posted successfully! Redirecting...
+        <div className="mb-6 flex items-center gap-2 px-4 py-3 bg-success-50 border border-success-200 text-success-700 text-sm rounded-xl animate-fade-in font-medium">
+          <CheckCircle2 className="w-5 h-5 text-success-600" />
+          Job posted successfully! Redirecting to Manage Jobs...
         </div>
       )}
 
-      <Card padding="lg">
+      {serverError && (
+        <div className="mb-6 flex items-center gap-2 px-4 py-3 bg-danger-50 border border-danger-200 text-danger-700 text-sm rounded-xl animate-fade-in font-medium">
+          <AlertCircle className="w-5 h-5 text-danger-600 flex-shrink-0" />
+          {serverError}
+        </div>
+      )}
+
+      <Card padding="md" className="border-2 border-slate-200/80 shadow-sm">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Job Title</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Job Title <span className="text-danger-500">*</span>
+            </label>
             <input
-              {...register('title', { required: 'Title is required' })}
+              {...register('title', { required: 'Title is required', minLength: { value: 3, message: 'Title must be at least 3 characters' } })}
               className={inputClass}
-              placeholder="Senior Frontend Developer"
+              placeholder="e.g. Senior Full Stack Engineer"
             />
             {errors.title && <p className="text-xs text-danger-500 mt-1">{errors.title.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Description <span className="text-danger-500">*</span>
+            </label>
             <textarea
-              {...register('description', { required: 'Description is required' })}
-              rows={6}
+              {...register('description', { required: 'Description is required', minLength: { value: 10, message: 'Description must be at least 10 characters' } })}
+              rows={5}
               className={`${inputClass} resize-none`}
-              placeholder="Describe the role, responsibilities, and what you're looking for..."
+              placeholder="Describe the role responsibilities, mission, and day-to-day work..."
             />
             {errors.description && <p className="text-xs text-danger-500 mt-1">{errors.description.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Requirements</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Qualifications & Requirements</label>
             <textarea
               {...register('requirements')}
               rows={4}
               className={`${inputClass} resize-none`}
-              placeholder="List the qualifications and requirements..."
+              placeholder="List specific qualifications, years of experience, or degree requirements..."
             />
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Location</label>
-              <input {...register('location')} className={inputClass} placeholder="Remote / San Francisco, CA" />
+              <input {...register('location')} className={inputClass} placeholder="e.g. San Francisco, CA (or Remote)" />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Job Type</label>
-              <select
-                {...register('type', { required: 'Select a job type' })}
-                className={inputClass}
-              >
-                <option value="">Select type...</option>
+              <select {...register('type', { required: 'Select a job type' })} className={inputClass}>
                 {jobTypeOptions.map((t) => (
                   <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
                 ))}
               </select>
-              {errors.type && <p className="text-xs text-danger-500 mt-1">{errors.type.message}</p>}
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Experience Level</label>
+              <select {...register('experience_level')} className={inputClass}>
+                {experienceOptions.map((lvl) => (
+                  <option key={lvl} value={lvl}>{lvl.charAt(0).toUpperCase() + lvl.slice(1)} Level</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Salary Range</label>
+              <input {...register('salary')} className={inputClass} placeholder="e.g. $120,000 - $150,000 / year" />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Salary Range</label>
-            <input {...register('salary')} className={inputClass} placeholder="$80,000 - $120,000 / year" />
-          </div>
-
-          <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">
-              Skills Required <span className="text-slate-400 font-normal">(comma-separated)</span>
+              Required Skills <span className="text-slate-400 font-normal">(comma-separated)</span>
             </label>
             <input
               {...register('skills')}
               className={inputClass}
-              placeholder="React, TypeScript, Node.js"
+              placeholder="e.g. React, Node.js, MongoDB, TypeScript, AWS"
             />
+            <p className="text-xs text-slate-400 mt-1">These skills are automatically evaluated by the Bias-Aware AI Screener against applicant resumes.</p>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <Button type="button" variant="ghost" onClick={() => navigate('/employer/jobs')}>
               Cancel
             </Button>
             <Button type="submit" loading={isSubmitting}>
-              <PlusCircle className="w-4 h-4" />
-              Post Job
+              <PlusCircle className="w-4 h-4 mr-2" />
+              Publish Job Listing
             </Button>
           </div>
         </form>

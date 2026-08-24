@@ -31,6 +31,7 @@ router.put('/jobs/:id', validateObjectId('id'), updateJob);
 router.delete('/jobs/:id', validateObjectId('id'), deleteJob);
 router.get('/jobs/:id/applicants', validateObjectId('id'), getApplicantsForJob);
 router.patch('/applications/:id/status', validateObjectId('id'), updateApplicationStatus);
+router.post('/applications/:id/interview', validateObjectId('id'), scheduleInterview);
 router.patch('/applications/:id/interview', validateObjectId('id'), scheduleInterview);
 router.put('/applications/:id/interview', validateObjectId('id'), scheduleInterview);
 router.get('/candidates/:id', validateObjectId('id'), getCandidateProfile);

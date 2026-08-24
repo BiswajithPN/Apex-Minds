@@ -12,11 +12,20 @@ const jobSchema = new mongoose.Schema(
       required: [true, 'Job title is required'],
       trim: true,
       minlength: [3, 'Job title must be at least 3 characters'],
+      validate: {
+        validator: (v) => v && v.trim().length >= 3,
+        message: 'Job title must be at least 3 non-empty characters',
+      },
     },
     description: {
       type: String,
       required: [true, 'Job description is required'],
+      trim: true,
       minlength: [10, 'Job description must be at least 10 characters'],
+      validate: {
+        validator: (v) => v && v.trim().length >= 10,
+        message: 'Job description must be at least 10 non-empty characters',
+      },
     },
     requirements: { type: String, default: '' },
     skills_required: {
@@ -40,6 +49,21 @@ const jobSchema = new mongoose.Schema(
       enum: ['open', 'closed'],
       default: 'open',
     },
+    // Configurable Candidate Screening Threshold (0-100)
+    threshold: {
+      type: Number,
+      default: 70,
+      min: 0,
+      max: 100,
+    },
+    // Configurable Multi-Criteria Rubric Weights (must sum to 1.0)
+    rubricWeights: {
+      skillWeight: { type: Number, default: 0.40 },
+      experienceWeight: { type: Number, default: 0.25 },
+      semanticWeight: { type: Number, default: 0.20 },
+      projectWeight: { type: Number, default: 0.10 },
+      educationWeight: { type: Number, default: 0.05 },
+    },
     flagged: {
       type: Boolean,
       default: false,
@@ -58,8 +82,20 @@ jobSchema.index({ title: 'text', description: 'text', skills_required: 'text' })
 jobSchema.pre('save', function (next) {
   if (this.job_type === '' || this.job_type === undefined) this.job_type = null;
   if (this.experience_level === '' || this.experience_level === undefined) this.experience_level = null;
+  // Trim and sanitize string fields — reject empty strings
+  if (this.title) this.title = this.title.trim();
+  if (this.description) this.description = this.description.trim();
+  if (this.location) this.location = this.location.trim();
+  if (this.salary) this.salary = this.salary.trim();
   if (typeof this.skills_required === 'string') {
     this.skills_required = this.skills_required.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+  // Ensure arrays only contain non-empty strings
+  if (Array.isArray(this.skills_required)) {
+    this.skills_required = this.skills_required.map((s) => String(s).trim()).filter((s) => s.length > 0);
+  }
+  if (typeof this.requirements === 'string') {
+    this.requirements = this.requirements.trim();
   }
   next();
 });

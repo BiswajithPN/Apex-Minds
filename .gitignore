@@ -1,25 +1,40 @@
-# Environment variables (CRITICAL: DO NOT COMMIT ENV FILES)
+# Dependencies
+node_modules/
+Backend/node_modules/
+Frontend/node_modules/
+
+# Production Builds & Bundles
+dist/
+build/
+Frontend/dist/
+Frontend/build/
+
+# Environment Variables
 .env
-.env.*
-*.env
 Backend/.env
 Frontend/.env
+.env.local
+.env.production
+.env.development
 
-# Node modules & dependencies
-node_modules/
-**/node_modules/
-
-# Build & Production outputs
-dist/
-**/dist/
-build/
-**/build/
-
-# Uploads & Temp files
-uploads/
-**/uploads/
+# Logs & Temporary Data
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+Backend/logs/
+uploads/
+Backend/uploads/*
+!Backend/uploads/.gitkeep
 
-# System files
+# OS & Editor Files
 .DS_Store
 Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

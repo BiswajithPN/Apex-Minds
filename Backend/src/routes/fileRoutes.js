@@ -2,11 +2,10 @@ const express = require('express');
 const router = express.Router();
 const path = require('path');
 const fs = require('fs');
-const protect = require('../middleware/authMiddleware');
 const { sendError } = require('../utils/apiResponse');
 
-// GET /api/files/:filename
-router.get('/:filename', protect, (req, res) => {
+// GET /api/files/:filename (Publicly servable uploaded files for browser img/doc preview)
+router.get('/:filename', (req, res) => {
   const safeFilename = path.basename(req.params.filename);
   const filePath = path.join(__dirname, '../../uploads', safeFilename);
 

@@ -24,7 +24,12 @@ import {
   Mail,
   MapPin,
   Image,
-  FolderOpen
+  FolderOpen,
+  Sliders,
+  Target,
+  Zap,
+  HelpCircle,
+  Info
 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -171,7 +176,7 @@ export default function ResumeScreener() {
     setSingleFile(file);
     setSingleError('');
 
-    if (file.type.startsWith('image/')) {
+    if (file.type?.startsWith('image/')) {
       const reader = new FileReader();
       reader.onload = (ev) => setSingleFilePreview(ev.target.result);
       reader.readAsDataURL(file);
@@ -210,7 +215,6 @@ export default function ResumeScreener() {
         formData.append('jobDescription', singleJd);
 
         const res = await api.post('/screener/screen-resume', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
           timeout: 120000
         });
 
@@ -287,7 +291,6 @@ export default function ResumeScreener() {
       batchFiles.forEach((f) => formData.append('resumeFiles', f));
 
       const res = await api.post('/screener/screen-batch', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 300000
       });
 
@@ -303,11 +306,12 @@ export default function ResumeScreener() {
 
   const exportBatchToCSV = (dataList, filenamePrefix = 'applicants_ranking') => {
     if (!dataList?.length) return;
-    const headers = ['Rank', 'Candidate/File', 'Match Score', 'Decision', 'Matched Skills', 'Missing Skills'];
+    const headers = ['Rank', 'Candidate/File', 'Match Score', 'Classification Tier', 'Decision', 'Matched Skills', 'Missing Skills'];
     const rows = dataList.map((c, idx) => [
       idx + 1,
       `"${c.name || c.filename || 'Candidate'}"`,
       c.matchScore,
+      `"${c.classificationTier || 'Standard'}"`,
       `"${c.decision}"`,
       `"${(c.matchedSkills || []).map((s) => s.skill || s).join(', ')}"`,
       `"${(c.missingSkills || []).map((s) => s.skill || s).join(', ')}"`
@@ -359,15 +363,39 @@ export default function ResumeScreener() {
   };
 
   const getScoreColor = (score) => {
-    if (score >= 75) return 'text-success-600 bg-success-50 border-success-200';
-    if (score >= 50) return 'text-warn-600 bg-warn-50 border-warn-200';
-    return 'text-danger-600 bg-danger-50 border-danger-200';
+    if (score >= 80) return 'text-emerald-700 bg-emerald-50 border-emerald-300';
+    if (score >= 65) return 'text-blue-700 bg-blue-50 border-blue-300';
+    if (score >= 50) return 'text-amber-700 bg-amber-50 border-amber-300';
+    return 'text-rose-700 bg-rose-50 border-rose-300';
   };
 
-  const getDecisionBadge = (decision) => {
-    if (decision?.includes('Highly')) return <Badge variant="success">Highly Recommended</Badge>;
-    if (decision?.includes('Consider')) return <Badge variant="warning">Consider with Screen</Badge>;
-    return <Badge variant="danger">Not Recommended</Badge>;
+  const getDecisionBadge = (decision, tier) => {
+    if (decision?.includes('Direct Interview') || decision?.includes('Highly')) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+          🥇 Tier 1: Highly Recommended
+        </span>
+      );
+    }
+    if (decision?.includes('Technical Assessment') || decision?.includes('Strong') || decision?.includes('Recommended (')) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300 shadow-2xs">
+          🥈 Tier 2: Recommended
+        </span>
+      );
+    }
+    if (decision?.includes('Targeted') || decision?.includes('Consider')) {
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs">
+          🥉 Tier 3: Moderate Fit
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300 shadow-2xs">
+        ✕ Tier 4: Rejected (Below Threshold)
+      </span>
+    );
   };
 
   const acceptedFormats = '.jpg,.jpeg,.png,.webp,.bmp,.pdf,image/jpeg,image/png,image/webp,image/bmp,application/pdf';
@@ -380,22 +408,22 @@ export default function ResumeScreener() {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-semibold tracking-wide uppercase">
               <ShieldCheck className="w-4 h-4 text-emerald-300" />
-              JPEG, PNG, WEBP & PDF Multi-Pass OCR Resume Screener Suite
+              Semantic Analysis • Multi-Tier Threshold Classification • Explainable Diagnostics
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight">AI Resume Screener & ATS Suite</h1>
             <p className="text-white/80 max-w-2xl text-sm leading-relaxed">
-              Dynamically gathers requirements directly from your active job posts, compares all applied candidate resumes, and evaluates technical depth with zero demographic bias.
+              Dynamically gathers requirements directly from your active job posts, evaluates semantic context vectors, computes mathematical classification thresholds, and provides deep rejection diagnostics.
             </p>
           </div>
 
           <div className="flex flex-wrap gap-2.5">
             <div className="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2.5 rounded-2xl text-center">
-              <p className="text-xs text-white/70 font-medium">Formats Supported</p>
-              <p className="text-sm font-bold text-emerald-300">JPEG • PNG • PDF</p>
+              <p className="text-xs text-white/70 font-medium">Classification</p>
+              <p className="text-sm font-bold text-emerald-300">4-Tier Dynamic Matrix</p>
             </div>
             <div className="bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2.5 rounded-2xl text-center">
-              <p className="text-xs text-white/70 font-medium">Demographic Scrub</p>
-              <p className="text-sm font-bold text-white">100% Blind Evaluation</p>
+              <p className="text-xs text-white/70 font-medium">Rejection XAI</p>
+              <p className="text-sm font-bold text-white">Full Reason Diagnostic</p>
             </div>
           </div>
         </div>
@@ -479,7 +507,7 @@ export default function ResumeScreener() {
           }`}
         >
           <FileCheck className="w-4 h-4" />
-          Single Resume Scanner (JPEG, PNG & PDF)
+          Single Resume Scanner & Semantic Analysis
         </button>
 
         <button
@@ -491,7 +519,7 @@ export default function ResumeScreener() {
           }`}
         >
           <Upload className="w-4 h-4" />
-          Bulk Upload Resumes (10–150+)
+          Bulk Upload & Threshold Classification
         </button>
 
         <button
@@ -519,7 +547,7 @@ export default function ResumeScreener() {
                 Ranked Candidates for "{selectedJobData?.title || 'Job Post'}"
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Evaluated against the job's required skills ({selectedJobData?.skills_required?.join(', ') || 'N/A'})
+                Evaluated against required skills, semantic context, and experience benchmarks
               </p>
             </div>
 
@@ -547,9 +575,9 @@ export default function ResumeScreener() {
             <div className="py-16 text-center space-y-3 bg-white rounded-2xl border border-slate-200/80">
               <div className="w-10 h-10 border-4 border-accent-500 border-t-transparent rounded-full animate-spin mx-auto" />
               <p className="text-sm font-semibold text-slate-700">
-                Gathering requirements from post and screening candidate resumes...
+                Gathering requirements from post, analyzing semantic context, and classifying candidate tiers...
               </p>
-              <p className="text-xs text-slate-400">Scrubbing PII, matching skills, and computing adjacent scores</p>
+              <p className="text-xs text-slate-400">Scrubbing PII, calculating cosine similarity, and preparing gap diagnostics</p>
             </div>
           ) : jobScreenError ? (
             <div className="p-4 bg-danger-50 text-danger-700 rounded-xl text-xs font-semibold">
@@ -569,8 +597,8 @@ export default function ResumeScreener() {
                       <th className="py-3.5 px-4 text-center w-16">Rank</th>
                       <th className="py-3.5 px-4">Candidate Profile</th>
                       <th className="py-3.5 px-4">Match Score</th>
-                      <th className="py-3.5 px-4">Recommendation</th>
-                      <th className="py-3.5 px-4">Skills Coverage</th>
+                      <th className="py-3.5 px-4">Classification & Recommendation</th>
+                      <th className="py-3.5 px-4">Skills & Context</th>
                       <th className="py-3.5 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -589,14 +617,16 @@ export default function ResumeScreener() {
                         </td>
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-24 bg-slate-100 rounded-full h-2 overflow-hidden">
+                            <div className="w-20 bg-slate-100 rounded-full h-2 overflow-hidden">
                               <div
                                 className={`h-full rounded-full ${
-                                  cand.matchScore >= 70
-                                    ? 'bg-success-500'
+                                  cand.matchScore >= 80
+                                    ? 'bg-emerald-500'
+                                    : cand.matchScore >= 65
+                                    ? 'bg-blue-500'
                                     : cand.matchScore >= 50
-                                    ? 'bg-warn-500'
-                                    : 'bg-danger-500'
+                                    ? 'bg-amber-500'
+                                    : 'bg-rose-500'
                                 }`}
                                 style={{ width: `${cand.matchScore}%` }}
                               />
@@ -604,16 +634,23 @@ export default function ResumeScreener() {
                             <span className="font-bold text-xs text-slate-700">{cand.matchScore}/100</span>
                           </div>
                         </td>
-                        <td className="py-3.5 px-4">{getDecisionBadge(cand.decision)}</td>
+                        <td className="py-3.5 px-4">{getDecisionBadge(cand.decision, cand.classificationTier)}</td>
                         <td className="py-3.5 px-4">
-                          <span className="text-xs font-semibold text-success-700 bg-success-50 px-2 py-0.5 rounded-md">
-                            {cand.matchedSkills?.length || 0} matched
-                          </span>
-                          {cand.adjacentSkills?.length > 0 && (
-                            <span className="ml-1 text-xs font-semibold text-accent-700 bg-accent-50 px-2 py-0.5 rounded-md">
-                              +{cand.adjacentSkills.length} transferable
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-xs font-semibold text-success-700 bg-success-50 px-2 py-0.5 rounded-md">
+                              {cand.matchedSkills?.length || 0} matched
                             </span>
-                          )}
+                            {cand.adjacentSkills?.length > 0 && (
+                              <span className="text-xs font-semibold text-accent-700 bg-accent-50 px-2 py-0.5 rounded-md">
+                                +{cand.adjacentSkills.length} transferable
+                              </span>
+                            )}
+                            {cand.missingSkills?.length > 0 && (
+                              <span className="text-xs font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md">
+                                {cand.missingSkills.length} missing
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-2">
@@ -636,7 +673,7 @@ export default function ResumeScreener() {
                               }}
                             >
                               <Eye className="w-4 h-4 mr-1" />
-                              AI Report
+                              AI Diagnostics
                             </Button>
                           </div>
                         </td>
@@ -651,7 +688,7 @@ export default function ResumeScreener() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 2: SINGLE RESUME SCANNER (JPEG, PNG & PDF) */}
+      {/* TAB 2: SINGLE RESUME SCANNER & SEMANTIC ANALYSIS */}
       {/* ========================================================================= */}
       {activeTab === 'single' && (
         <div className="space-y-8">
@@ -710,7 +747,7 @@ export default function ResumeScreener() {
 
                 {singleMode === 'upload' ? (
                   <div className="space-y-4">
-                    {/* Robust File Dropzone with Native Input and Explicit Browse Button */}
+                    {/* File Dropzone */}
                     <div
                       onDragOver={(e) => { e.preventDefault(); setSingleDragOver(true); }}
                       onDragLeave={() => setSingleDragOver(false)}
@@ -816,7 +853,7 @@ export default function ResumeScreener() {
                   className="w-full justify-center shadow-lg shadow-accent-500/20 font-bold"
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
-                  {singleLoading ? 'Running Multi-Pass OCR & Evaluation...' : 'Screen Against Selected Job Post'}
+                  {singleLoading ? 'Running Semantic Vector Analysis & Classification...' : 'Screen & Classify Resume'}
                 </Button>
               </Card>
             </div>
@@ -825,6 +862,7 @@ export default function ResumeScreener() {
           {/* Results Showcase */}
           {singleResult && (
             <div className="space-y-6 animate-fade-in">
+              {/* Classification Banner */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <Card className="flex items-center gap-4 border-l-4 border-accent-500">
                   <div
@@ -836,8 +874,21 @@ export default function ResumeScreener() {
                     <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Score</span>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 font-semibold">Recommendation</p>
-                    <div className="mt-1">{getDecisionBadge(singleResult.decision)}</div>
+                    <p className="text-xs text-slate-500 font-semibold">Classification & Tier</p>
+                    <div className="mt-1">{getDecisionBadge(singleResult.decision, singleResult.classificationTier)}</div>
+                  </div>
+                </Card>
+
+                <Card className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-500 font-semibold">Semantic Vector Alignment</p>
+                    <p className="text-lg font-bold text-slate-800">
+                      {singleResult.semanticAnalysis?.semanticScore || 0}%
+                    </p>
+                    <p className="text-[10px] text-slate-400">Cosine: {singleResult.semanticAnalysis?.cosineSimilarity || 0}</p>
                   </div>
                 </Card>
 
@@ -846,10 +897,11 @@ export default function ResumeScreener() {
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 font-semibold">Matched Skills</p>
+                    <p className="text-xs text-slate-500 font-semibold">Skill Coverage</p>
                     <p className="text-lg font-bold text-slate-800">
                       {singleResult.matchedSkills?.length || 0} / {singleResult.requiredSkills?.length || 0}
                     </p>
+                    <p className="text-[10px] text-slate-400">{singleResult.missingSkills?.length || 0} missing</p>
                   </div>
                 </Card>
 
@@ -862,23 +914,105 @@ export default function ResumeScreener() {
                     <p className="text-lg font-bold text-slate-800">
                       {singleResult.experience?.totalYearsCalculated || 0} yrs
                     </p>
-                  </div>
-                </Card>
-
-                <Card className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center flex-shrink-0">
-                    <GraduationCap className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-slate-500 font-semibold">Education</p>
-                    <p className="text-sm font-bold text-slate-800 truncate">
-                      {singleResult.education?.degree || 'Verified'}
-                    </p>
+                    <p className="text-[10px] text-slate-400">Target: {singleResult.experience?.requiredYears || 0} yrs</p>
                   </div>
                 </Card>
               </div>
 
-              {/* Skills Analysis */}
+              {/* Threshold Mathematical Breakdown Card */}
+              {singleResult.thresholdBreakdown && (
+                <Card padding="md" className="space-y-3 bg-slate-50/70 border-slate-200">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
+                    <div className="flex items-center gap-2">
+                      <Sliders className="w-4 h-4 text-accent-600" />
+                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                        Mathematical Threshold & Component Breakdown
+                      </h4>
+                    </div>
+                    <span className="text-xs font-semibold text-slate-600">
+                      Dynamic Acceptance Threshold: <strong className="text-accent-700">{singleResult.thresholdBreakdown.calculatedThreshold} pts</strong>
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-center">
+                    <div className="p-2.5 bg-white rounded-xl border border-slate-200">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Core Skills</p>
+                      <p className="text-sm font-black text-slate-800 mt-0.5">{singleResult.thresholdBreakdown.scoreComponents?.skillScore}</p>
+                    </div>
+                    <div className="p-2.5 bg-white rounded-xl border border-slate-200">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Adjacent Skills</p>
+                      <p className="text-sm font-black text-slate-800 mt-0.5">{singleResult.thresholdBreakdown.scoreComponents?.adjacentScore}</p>
+                    </div>
+                    <div className="p-2.5 bg-white rounded-xl border border-slate-200">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Semantic Context</p>
+                      <p className="text-sm font-black text-slate-800 mt-0.5">{singleResult.thresholdBreakdown.scoreComponents?.semanticScore}</p>
+                    </div>
+                    <div className="p-2.5 bg-white rounded-xl border border-slate-200">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Experience Tenure</p>
+                      <p className="text-sm font-black text-slate-800 mt-0.5">{singleResult.thresholdBreakdown.scoreComponents?.experienceScore}</p>
+                    </div>
+                    <div className="p-2.5 bg-white rounded-xl border border-slate-200">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase">Education & Certs</p>
+                      <p className="text-sm font-black text-slate-800 mt-0.5">{singleResult.thresholdBreakdown.scoreComponents?.educationScore}</p>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
+              {/* EXPLICIT REJECTION & GAP DIAGNOSTICS SECTION */}
+              {singleResult.rejectionDiagnostics?.isRejected ? (
+                <Card padding="lg" className="border-rose-300 bg-rose-50/30 space-y-4">
+                  <div className="flex items-center gap-3 border-b border-rose-200 pb-3">
+                    <div className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center flex-shrink-0">
+                      <AlertTriangle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-rose-900 text-base">
+                        ⚠️ Rejection Diagnostic: Why the Candidate Was Not Recommended
+                      </h3>
+                      <p className="text-xs text-rose-700">
+                        The candidate's score ({singleResult.matchScore}/100) fell below the required acceptance threshold ({singleResult.thresholdBreakdown?.calculatedThreshold} pts).
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-bold uppercase text-rose-900 tracking-wider">Primary Deficit Factors:</h4>
+                    <ul className="space-y-2">
+                      {singleResult.rejectionDiagnostics.primaryReasons?.map((reason, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-xs text-rose-900 bg-white p-3 rounded-xl border border-rose-200 shadow-2xs font-medium">
+                          <XCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                          <span>{reason}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {singleResult.rejectionDiagnostics.remediationPlan && (
+                    <div className="p-4 bg-white rounded-2xl border border-rose-200 space-y-1.5">
+                      <h4 className="text-xs font-bold text-slate-800 uppercase flex items-center gap-1.5">
+                        <Target className="w-4 h-4 text-accent-600" />
+                        Actionable Remediation Bridge for Candidate
+                      </h4>
+                      <p className="text-xs text-slate-700 leading-relaxed">
+                        {singleResult.rejectionDiagnostics.remediationPlan}
+                      </p>
+                    </div>
+                  )}
+                </Card>
+              ) : (
+                <Card padding="md" className="border-emerald-200 bg-emerald-50/20 space-y-2">
+                  <div className="flex items-center gap-2 text-emerald-800">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                    <h3 className="font-bold text-sm">✅ Candidate Successfully Qualified & Shortlisted</h3>
+                  </div>
+                  <p className="text-xs text-emerald-700">
+                    The candidate scored above the required threshold with strong technical coverage and domain alignment.
+                  </p>
+                </Card>
+              )}
+
+              {/* Skills Analysis Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Card padding="md" className="space-y-3">
                   <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2 text-success-600">
@@ -950,7 +1084,7 @@ export default function ResumeScreener() {
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-accent-500" />
-                    Comprehensive Evaluation Report
+                    Comprehensive AI Diagnostic Report
                   </h3>
 
                   <button
@@ -972,7 +1106,7 @@ export default function ResumeScreener() {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 3: BATCH UPLOAD (10–150+) */}
+      {/* TAB 3: BATCH UPLOAD & THRESHOLD CLASSIFICATION */}
       {/* ========================================================================= */}
       {activeTab === 'batch' && (
         <div className="space-y-8">
@@ -1095,7 +1229,7 @@ export default function ResumeScreener() {
                       <th className="py-3.5 px-4 text-center w-16">Rank</th>
                       <th className="py-3.5 px-4">Filename</th>
                       <th className="py-3.5 px-4">Match Score</th>
-                      <th className="py-3.5 px-4">Decision</th>
+                      <th className="py-3.5 px-4">Classification & Decision</th>
                       <th className="py-3.5 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -1105,7 +1239,7 @@ export default function ResumeScreener() {
                         <td className="py-3.5 px-4 text-center font-bold">#{idx + 1}</td>
                         <td className="py-3.5 px-4 font-semibold text-slate-800">{cand.filename}</td>
                         <td className="py-3.5 px-4 font-bold text-slate-700">{cand.matchScore}/100</td>
-                        <td className="py-3.5 px-4">{getDecisionBadge(cand.decision)}</td>
+                        <td className="py-3.5 px-4">{getDecisionBadge(cand.decision, cand.classificationTier)}</td>
                         <td className="py-3.5 px-4 text-right">
                           <Button
                             variant="ghost"
@@ -1232,100 +1366,159 @@ export default function ResumeScreener() {
         </div>
       )}
 
-      {/* Candidate AI Evaluation Modal */}
+      {/* In-Page Full Expanded Candidate AI Diagnostic Report (No Popups) */}
       {selectedCandidate && (
-        <Modal
-          isOpen={candidateModalOpen}
-          onClose={() => setCandidateModalOpen(false)}
-          title={`AI Evaluation: ${selectedCandidate.name || selectedCandidate.filename || 'Candidate'}`}
-          size="lg"
-        >
-          <div className="space-y-5">
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
-              <div>
-                <p className="text-xs text-slate-500 font-semibold">Match Score</p>
-                <p className="text-2xl font-black text-slate-900">{selectedCandidate.matchScore}/100</p>
+        <Card padding="lg" className="border-2 border-accent-300/80 shadow-lg bg-white space-y-6 animate-fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl gradient-accent flex items-center justify-center text-white font-bold">
+                <Sparkles className="w-5 h-5" />
               </div>
-              <div>{getDecisionBadge(selectedCandidate.decision)}</div>
+              <div>
+                <h3 className="font-extrabold text-slate-900 text-lg">
+                  In-Page AI Diagnostics: {selectedCandidate.name || selectedCandidate.filename || 'Candidate'}
+                </h3>
+                <p className="text-xs text-slate-500">Comprehensive multi-criteria evaluation and gap analysis</p>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <h4 className="text-xs font-bold uppercase text-slate-500 tracking-wider">Evaluation Narrative</h4>
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 whitespace-pre-line leading-relaxed max-h-72 overflow-y-auto">
-                {selectedCandidate.comprehensiveReport}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setSelectedCandidate(null)}
+              className="font-bold text-xs self-start sm:self-auto"
+            >
+              ✕ Close In-Page Report
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Multi-Criteria Score</p>
+                <p className="text-3xl font-black text-slate-900">{selectedCandidate.matchScore}<span className="text-sm text-slate-500">/100</span></p>
               </div>
+              <div>{getDecisionBadge(selectedCandidate.decision, selectedCandidate.classificationTier)}</div>
+            </div>
+
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Experience Tenure</p>
+                <p className="text-lg font-black text-slate-900">{selectedCandidate.experience?.totalYearsCalculated || 0} years detected</p>
+              </div>
+              <span className="text-xs font-bold text-slate-600 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
+                Edu: {selectedCandidate.education?.degree || 'Verified'}
+              </span>
             </div>
           </div>
-        </Modal>
+
+          {/* Rejection / Shortlist details */}
+          {selectedCandidate.rejectionDiagnostics?.isRejected ? (
+            <div className="p-5 bg-rose-50 border border-rose-200 rounded-2xl space-y-3">
+              <h4 className="text-xs font-bold uppercase text-rose-950 tracking-wider flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-600" />
+                Primary Reasons for Rejection / Shortfall:
+              </h4>
+              <ul className="space-y-1.5 text-xs text-rose-900">
+                {selectedCandidate.rejectionDiagnostics.primaryReasons?.map((r, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="font-bold text-rose-500">•</span>
+                    <span>{r}</span>
+                  </li>
+                ))}
+              </ul>
+              {selectedCandidate.rejectionDiagnostics.remediationPlan && (
+                <div className="mt-3 pt-3 border-t border-rose-200 text-xs text-slate-700 bg-white/80 p-3 rounded-xl">
+                  <strong className="text-rose-950 uppercase text-[10px] tracking-wider block mb-0.5">Actionable Remediation:</strong>
+                  <p>{selectedCandidate.rejectionDiagnostics.remediationPlan}</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-900 font-bold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              Candidate meets role criteria and is classified as qualified for technical assessment or interview.
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <h4 className="text-xs font-bold uppercase text-slate-500 tracking-wider">Evaluation Narrative & Technical Breakdown</h4>
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-700 whitespace-pre-line leading-relaxed max-h-96 overflow-y-auto font-sans">
+              {selectedCandidate.comprehensiveReport}
+            </div>
+          </div>
+        </Card>
       )}
 
-      {/* Candidate Actual Resume Viewer Modal */}
+      {/* In-Page Full Expanded Candidate Actual Resume Document View (No Popups) */}
       {viewingResumeCandidate && (
-        <Modal
-          isOpen={resumeModalOpen}
-          onClose={() => setResumeModalOpen(false)}
-          title={`Applied Resume: ${viewingResumeCandidate.name || 'Candidate'}`}
-          size="lg"
-        >
-          <div className="space-y-5">
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl gradient-accent flex items-center justify-center text-white font-bold text-lg">
-                  {viewingResumeCandidate.name?.[0] || 'C'}
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900 text-base">{viewingResumeCandidate.name}</h3>
-                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-0.5">
-                    {viewingResumeCandidate.email && (
-                      <span className="flex items-center gap-1">
-                        <Mail className="w-3.5 h-3.5 text-slate-400" />
-                        {viewingResumeCandidate.email}
-                      </span>
-                    )}
-                    {viewingResumeCandidate.profileLocation && (
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                        {viewingResumeCandidate.profileLocation}
-                      </span>
-                    )}
-                  </div>
-                </div>
+        <Card padding="lg" className="border-2 border-accent-300/80 shadow-lg bg-white space-y-6 animate-fade-in">
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-xl gradient-accent flex items-center justify-center text-white font-bold text-lg">
+                {viewingResumeCandidate.name?.[0] || 'C'}
               </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handleCopyResumeText(viewingResumeCandidate.resumeText)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl transition-all shadow-2xs"
-                >
-                  {copiedResumeText ? <Check className="w-3.5 h-3.5 text-success-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  {copiedResumeText ? 'Copied' : 'Copy Resume'}
-                </button>
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">{viewingResumeCandidate.name}</h3>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 mt-0.5">
+                  {viewingResumeCandidate.email && (
+                    <span className="flex items-center gap-1">
+                      <Mail className="w-3.5 h-3.5 text-slate-400" />
+                      {viewingResumeCandidate.email}
+                    </span>
+                  )}
+                  {viewingResumeCandidate.profileLocation && (
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                      {viewingResumeCandidate.profileLocation}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Candidate Skills Pills */}
-            {viewingResumeCandidate.profileSkills?.length > 0 && (
-              <div>
-                <h4 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Technical Skills</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {viewingResumeCandidate.profileSkills.map((sk, idx) => (
-                    <span key={idx} className="px-2.5 py-1 bg-accent-50 text-accent-700 font-semibold text-xs rounded-lg border border-accent-200">
-                      {sk}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleCopyResumeText(viewingResumeCandidate.resumeText)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl transition-all shadow-2xs"
+              >
+                {copiedResumeText ? <Check className="w-3.5 h-3.5 text-success-600" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedResumeText ? 'Copied' : 'Copy Resume'}
+              </button>
 
-            {/* Actual Resume Content / Document */}
-            <div>
-              <h4 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Applied Resume Content</h4>
-              <div className="p-4 bg-slate-900 text-slate-100 rounded-2xl font-mono text-xs leading-relaxed max-h-80 overflow-y-auto whitespace-pre-wrap selection:bg-accent-500">
-                {viewingResumeCandidate.resumeText || 'No resume text available for this profile.'}
-              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setViewingResumeCandidate(null)}
+                className="font-bold text-xs"
+              >
+                ✕ Close In-Page View
+              </Button>
             </div>
           </div>
-        </Modal>
+
+          {/* Candidate Skills Pills */}
+          {viewingResumeCandidate.profileSkills?.length > 0 && (
+            <div>
+              <h4 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Extracted Technical Skills</h4>
+              <div className="flex flex-wrap gap-1.5">
+                {viewingResumeCandidate.profileSkills.map((sk, idx) => (
+                  <span key={idx} className="px-2.5 py-1 bg-accent-50 text-accent-700 font-semibold text-xs rounded-lg border border-accent-200">
+                    {sk}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Actual Resume Content / Document */}
+          <div>
+            <h4 className="text-xs font-bold uppercase text-slate-500 tracking-wider mb-2">Applied Resume Content</h4>
+            <div className="p-4 bg-slate-900 text-slate-100 rounded-2xl font-mono text-xs leading-relaxed max-h-96 overflow-y-auto whitespace-pre-wrap selection:bg-accent-500">
+              {viewingResumeCandidate.resumeText || 'No resume text available for this profile.'}
+            </div>
+          </div>
+        </Card>
       )}
     </div>
   );

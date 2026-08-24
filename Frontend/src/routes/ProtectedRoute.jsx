@@ -9,8 +9,7 @@ export default function ProtectedRoute({ children, allowedRoles }) {
   }
 
   if (allowedRoles && !allowedRoles.includes(role)) {
-    const target = homePath(role);
-    return <Navigate to={target || '/login'} replace />;
+    return <Navigate to={homePath(role)} replace />;
   }
 
   return children;

@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { jwtDecode } from 'jwt-decode';
 import api from '../api/axiosInstance';
-import { isTokenValid } from '../utils/token';
 
 const useAuthStore = create(
   persist(
@@ -42,26 +41,23 @@ const useAuthStore = create(
 
       isAuthenticated: () => {
         const { token } = get();
-        return isTokenValid(token);
+        if (!token) return false;
+        try {
+          const decoded = jwtDecode(token);
+          return decoded.exp * 1000 > Date.now();
+        } catch {
+          return false;
+        }
       },
 
       homePath: (role) => {
-        const state = get();
-        let r = role || state.role;
-        if (!r && state.token) {
-          try {
-            const decoded = jwtDecode(state.token);
-            r = decoded.role;
-          } catch {
-            // invalid token
-          }
-        }
+        const r = role || get().role;
         const paths = {
           jobseeker: '/jobseeker/dashboard',
           employer: '/employer/dashboard',
           admin: '/admin/dashboard',
         };
-        return paths[r] || null;
+        return paths[r] || '/login';
       },
     }),
     {

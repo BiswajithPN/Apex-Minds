@@ -684,19 +684,14 @@
             if (fileInput.files.length > 0) handleFileSelect(fileInput.files[0]);
         });
 
-        function handleFileSelect(files) {
-            if (files.length === 1) {
-                fileName.textContent = '📎 ' + files[0].name;
+        function handleFileSelect(file) {
+            if (file && file.name) {
+                fileName.textContent = '📎 ' + file.name;
                 fileName.style.display = 'block';
                 uploadArea.classList.add('has-file');
                 const reader = new FileReader();
                 reader.onload = (e) => { previewImg.src = e.target.result; previewContainer.style.display = 'block'; };
-                reader.readAsDataURL(files[0]);
-            } else if (files.length > 1) {
-                fileName.textContent = '📎 ' + files.length + ' resumes selected for batch scan';
-                fileName.style.display = 'block';
-                uploadArea.classList.add('has-file');
-                previewContainer.style.display = 'none';
+                reader.readAsDataURL(file);
             }
         }
 
@@ -891,7 +886,8 @@
 
             const tbody = document.getElementById('evidenceBody');
             tbody.innerHTML = '';
-            data.keywordEvidence.forEach(ev => {
+            const evidence = data.keywordEvidence || (data.matchedSkills || []).map(s => ({ criterion: 'Skill: ' + s.skill, found: true, sourceText: s.evidence || s.note || '' })).concat((data.missingSkills || []).map(s => ({ criterion: 'Skill: ' + (s.skill || s), found: false, sourceText: s.note || '' })));
+            evidence.forEach(ev => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `<td>${ev.criterion}</td><td class="${ev.found ? 'found-yes' : 'found-no'}">${ev.found ? '✅ Yes' : '❌ No'}</td><td>${ev.sourceText || '—'}</td>`;
                 tbody.appendChild(tr);

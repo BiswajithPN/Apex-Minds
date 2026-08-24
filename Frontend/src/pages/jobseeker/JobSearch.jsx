@@ -13,7 +13,6 @@ export default function JobSearch() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const [type, setType] = useState(searchParams.get('type') || 'All');
@@ -26,7 +25,6 @@ export default function JobSearch() {
 
   const loadJobs = async () => {
     setLoading(true);
-    setError('');
     try {
       const params = { page, limit: 9 };
       if (search) params.search = search;
@@ -36,9 +34,8 @@ export default function JobSearch() {
       const { data } = await api.get('/jobs', { params });
       setJobs(data.jobs || []);
       setTotalPages(data.totalPages || 1);
-    } catch (err) {
+    } catch {
       setJobs([]);
-      setError(err.response?.data?.message || err.response?.data?.detail || 'Failed to fetch job listings. Please check your network connection.');
     } finally {
       setLoading(false);
     }
@@ -46,7 +43,6 @@ export default function JobSearch() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (loading) return;
     const params = {};
     if (search) params.q = search;
     if (type !== 'All') params.type = type;
@@ -57,7 +53,6 @@ export default function JobSearch() {
   };
 
   const goToPage = (p) => {
-    if (loading || p === page) return;
     const params = Object.fromEntries(searchParams.entries());
     params.page = String(p);
     setSearchParams(params);
@@ -81,13 +76,6 @@ export default function JobSearch() {
         <p className="text-sm text-slate-500 mt-1">Find your next opportunity</p>
       </div>
 
-      {error && (
-        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl flex items-center justify-between">
-          <span>{error}</span>
-          <Button size="sm" variant="ghost" onClick={loadJobs}>Retry</Button>
-        </div>
-      )}
-
       {/* Search + Filters */}
       <Card padding="md" className="mb-6">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
@@ -109,7 +97,7 @@ export default function JobSearch() {
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent-400 focus:border-transparent"
             />
           </div>
-          <Button type="submit" size="md" loading={loading}>
+          <Button type="submit" size="md">
             <Search className="w-4 h-4" />
             Search
           </Button>
@@ -120,7 +108,6 @@ export default function JobSearch() {
           {jobTypes.map((t) => (
             <button
               key={t}
-              disabled={loading}
               onClick={() => {
                 setType(t);
                 const params = Object.fromEntries(searchParams.entries());
@@ -132,10 +119,9 @@ export default function JobSearch() {
               className={`
                 px-3 py-1.5 text-xs font-medium rounded-lg transition-all
                 ${type === t
-                  ? 'bg-emerald-600 text-white shadow-sm'
+                  ? 'bg-accent-500 text-white shadow-sm'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }
-                ${loading ? 'opacity-50 cursor-not-allowed' : ''}
               `}
             >
               {t === 'All' ? 'All Types' : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -195,7 +181,7 @@ export default function JobSearch() {
               <Button
                 variant="ghost"
                 size="sm"
-                disabled={page <= 1 || loading}
+                disabled={page <= 1}
                 onClick={() => goToPage(page - 1)}
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -203,15 +189,13 @@ export default function JobSearch() {
               {Array.from({ length: totalPages }, (_, i) => (
                 <button
                   key={i + 1}
-                  disabled={loading}
                   onClick={() => goToPage(i + 1)}
                   className={`
                     w-9 h-9 rounded-lg text-sm font-medium transition-all
                     ${page === i + 1
-                      ? 'bg-emerald-600 text-white shadow-sm'
+                      ? 'bg-accent-500 text-white shadow-sm'
                       : 'text-slate-600 hover:bg-slate-100'
                     }
-                    ${loading ? 'opacity-50 cursor-not-allowed' : ''}
                   `}
                 >
                   {i + 1}
@@ -220,7 +204,7 @@ export default function JobSearch() {
               <Button
                 variant="ghost"
                 size="sm"
-                disabled={page >= totalPages || loading}
+                disabled={page >= totalPages}
                 onClick={() => goToPage(page + 1)}
               >
                 <ChevronRight className="w-4 h-4" />

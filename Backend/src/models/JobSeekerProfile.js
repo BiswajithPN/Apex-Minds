@@ -16,6 +16,7 @@ const jobSeekerProfileSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
       unique: true,
+      index: true,
     },
     full_name: { type: String, trim: true },
     phone: {
@@ -23,9 +24,10 @@ const jobSeekerProfileSchema = new mongoose.Schema(
       trim: true,
       validate: {
         validator: function (v) {
-          return !v || /^[0-9+()\s-]{7,20}$/.test(v);
+          // Allows standard 10-15 digit numbers, international + prefix, dashes, spaces, parentheses
+          return !v || /^[+]?[(]?[0-9]{1,4}[)]?[-\s./0-9]{6,15}$/.test(v.trim());
         },
-        message: 'Please provide a valid phone number (7 to 20 digits/characters)',
+        message: 'Please enter a valid phone number (e.g. +1 555-123-4567 or 9876543210)',
       },
     },
     location: { type: String, trim: true },
