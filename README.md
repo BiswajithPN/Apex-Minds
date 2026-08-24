@@ -1,5 +1,5 @@
-# HireHub AI — Unified AI Job Marketplace & Bias-Aware Resume Screener Suite
-
+# HireHub — AI-Powered Bias-Free Hiring Platform
+An end-to-end job marketplace with identity-blind resume screening, multi-criteria scoring, explainable AI decisions, and full EEOC/GDPR compliance.
 A unified, full-stack **MERN** application integrating:
 1. **HireHub AI Job Marketplace**: Multi-role platform for Job Seekers, Employers, and Admins featuring automated matching, job management, application tracking, and profile analytics.
 2. **Bias-Aware OCR & Heuristic Resume Screener Suite (Project 1)**: Demographically blind resume evaluation engine with local Multi-Pass OCR (Tesseract + Sharp), transferable adjacent skills graph, tenure validation, batch ranking leaderboards (10–150+ resumes), and job description inclusivity auditing.
