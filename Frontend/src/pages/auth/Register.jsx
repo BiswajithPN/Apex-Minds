@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
-import { User, Building2, ShieldCheck } from 'lucide-react';
+import { User, Building2, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import api from '../../api/axiosInstance';
 
@@ -9,10 +8,12 @@ export default function Register() {
   const navigate = useNavigate();
   const { login, isAuthenticated, homePath } = useAuthStore();
   const [role, setRole] = useState('jobseeker');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   useEffect(() => {
     if (isAuthenticated()) {
@@ -20,14 +21,26 @@ export default function Register() {
     }
   }, []);
 
-  const handleGoogleSuccess = async (credentialResponse) => {
+  const handleRegister = async (e) => {
+    if (e) e.preventDefault();
+    const cleanEmail = email.trim();
+    const cleanName = fullName.trim();
+    if (!cleanName || !cleanEmail || !password) {
+      setError('Please fill in all fields.');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
-      const { data } = await api.post('/auth/google', {
-        credential: credentialResponse.credential,
+      const { data } = await api.post('/auth/register', {
+        full_name: cleanName,
+        email: cleanEmail,
+        password,
         role,
-        isSignUp: true,
       });
       login(data.token, data.user);
       if (data.user.role === 'jobseeker') {
@@ -36,7 +49,7 @@ export default function Register() {
         navigate(homePath(data.user.role), { replace: true });
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Google registration failed. Please try with email.');
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -80,7 +93,6 @@ export default function Register() {
           </p>
         </div>
 
-
       </div>
 
       {/* ── FORM PANEL ── */}
@@ -93,7 +105,7 @@ export default function Register() {
           {/* Heading */}
           <div>
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Create account</h2>
-            <p className="text-sm text-slate-500 font-medium mt-1">Select your role &amp; sign up</p>
+            <p className="text-sm text-slate-500 font-medium mt-1">Select your role & sign up</p>
           </div>
 
           {/* Error */}
@@ -130,28 +142,72 @@ export default function Register() {
             ))}
           </div>
 
-          {/* Google Sign-Up */}
-          <div className="flex justify-center">
-            {googleClientId ? (
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => setError('Google Authentication Failed.')}
-                theme="outline"
-                size="large"
-                shape="pill"
-                text="signup_with"
-                width="320"
+          {/* Registration form */}
+          <form onSubmit={handleRegister} className="space-y-3">
+            {/* Full Name */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                Full Name
+              </label>
+              <input
+                type="text"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="John Doe"
+                className="w-full py-3 px-4 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 placeholder:text-slate-400 transition-all"
               />
-            ) : (
-              <button
-                type="button"
-                onClick={() => setError('Google Sign-In is not configured.')}
-                className="w-full py-3 px-4 border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2.5 transition-colors"
-              >
-                Sign up with Google
-              </button>
-            )}
-          </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                Email address
+              </label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full py-3 px-4 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 placeholder:text-slate-400 transition-all"
+              />
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5">
+                Password (min. 8 characters)
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full py-3 px-4 pr-11 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-slate-900 placeholder:text-slate-400 transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-extrabold text-sm rounded-xl shadow-md shadow-emerald-600/20 transition-all active:scale-[0.99] disabled:opacity-60 cursor-pointer"
+            >
+              {loading ? 'Creating account…' : 'Create Account'}
+            </button>
+          </form>
 
           {/* Footer */}
           <p className="text-center text-sm text-slate-500 pb-6 lg:pb-0">
