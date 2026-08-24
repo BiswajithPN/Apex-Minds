@@ -8,7 +8,17 @@ try {
 const mongoose = require('mongoose');
 const env = require('./env');
 
+// Cache the connection for serverless (Vercel)
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
 const connectDB = async () => {
+  // Return existing connection if available
+  if (cached.conn && mongoose.connection.readyState === 1) {
+    return cached.conn;
+  }
   const primaryUri = env.MONGO_URI || 'mongodb://127.0.0.1:27017/hirehub';
   const fallbackUri = 'mongodb://127.0.0.1:27017/hirehub';
 
@@ -23,10 +33,17 @@ const connectDB = async () => {
   };
 
   try {
-    console.log(`[MongoDB] Connecting to database...`);
-    const conn = await mongoose.connect(primaryUri, mongoOptions);
-    console.log(`[MongoDB] Connected successfully to: ${conn.connection.host}/${conn.connection.name}`);
+    if (!cached.promise) {
+      console.log(`[MongoDB] Connecting to database...`);
+      cached.promise = mongoose.connect(primaryUri, mongoOptions).then((conn) => {
+        console.log(`[MongoDB] Connected successfully to: ${conn.connection.host}/${conn.connection.name}`);
+        return conn;
+      });
+    }
+    const conn = await cached.promise;
+    cached.conn = conn;
     await autoSeedIfEmpty();
+    return conn;
   } catch (error) {
     console.warn(`[MongoDB Warning] Primary connection (${primaryUri}) failed: ${error.message}`);
 
@@ -40,7 +57,9 @@ const connectDB = async () => {
           minPoolSize: 2,
         });
         console.log(`[MongoDB] Fallback connected to: ${fallbackConn.connection.host}/${fallbackConn.connection.name}`);
+        cached.conn = fallbackConn;
         await autoSeedIfEmpty();
+        return fallbackConn;
       } catch (fallbackError) {
         console.error(`[MongoDB Fatal Error] Fallback connection failed: ${fallbackError.message}`);
       }

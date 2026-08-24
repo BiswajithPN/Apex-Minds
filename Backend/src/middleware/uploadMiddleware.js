@@ -106,17 +106,20 @@ const saveFile = async (buffer, filename, folder = 'hirehub/resumes') => {
     }
   }
 
-  // Fallback -> local disk storage in ./uploads
-  const uploadDir = path.join(__dirname, '../../uploads');
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
+  // Fallback -> local disk storage (works locally, not on Vercel)
+  try {
+    const uploadDir = path.join(__dirname, '../../uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    const safeFilename = `${Date.now()}-${path.basename(filename).replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const filePath = path.join(uploadDir, safeFilename);
+    fs.writeFileSync(filePath, buffer);
+    return `/api/files/${safeFilename}`;
+  } catch (err) {
+    console.warn('[Local Storage Failed]:', err.message);
+    throw new Error('File storage unavailable. Cloudinary is required for production.');
   }
-
-  const safeFilename = `${Date.now()}-${path.basename(filename).replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-  const filePath = path.join(uploadDir, safeFilename);
-  fs.writeFileSync(filePath, buffer);
-
-  return `/api/files/${safeFilename}`;
 };
 
 module.exports = {

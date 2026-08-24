@@ -1,13 +1,9 @@
 const fs = require('fs');
-const path = require('path');
 const { redactIdentityFields, screenResumeLocal, generateDecision } = require('../services/screenerService');
 const {
   extractTextFromFile,
-  preprocessImageFast,
-  runOCR,
   cleanOCRText,
   asyncPool,
-  getTempDir
 } = require('../services/ocrService');
 const { auditJobDescription } = require('../services/biasAuditService');
 const Application = require('../models/Application');
@@ -15,25 +11,10 @@ const Job = require('../models/Job');
 const { sendSuccess, sendError } = require('../utils/apiResponse');
 
 /**
- * Helper to safely delete file
- */
-function safeUnlink(filePath) {
-  try {
-    if (filePath && fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-  } catch (e) {
-    // Ignore cleanup error
-  }
-}
-
-/**
  * Screen a single uploaded resume (Image or PDF)
  * POST /api/screener/screen-resume
  */
 const screenResumeFile = async (req, res, next) => {
-  const filesToCleanup = [];
-
   try {
     const jobDescription = req.body.jobDescription || '';
     if (!jobDescription.trim()) {
@@ -44,11 +25,18 @@ const screenResumeFile = async (req, res, next) => {
       return sendError(res, 400, 'Resume file (image or PDF) is required.');
     }
 
-    filesToCleanup.push(req.file.path);
-
-    // 1. Extract text from file (Image OCR or PDF Parse)
+    // 1. Extract text from file (PDF via buffer, images — no OCR)
     console.log(`[Screener] Processing single file: ${req.file.originalname}`);
-    const extractedRawText = await extractTextFromFile(req.file.path, req.file.mimetype);
+    const isPdf = req.file.mimetype === 'application/pdf' || req.file.originalname.toLowerCase().endsWith('.pdf');
+    let extractedRawText = '';
+    if (isPdf && req.file.buffer) {
+      const { extractTextFromBuffer } = require('../services/ocrService');
+      extractedRawText = await extractTextFromBuffer(req.file.buffer, req.file.originalname, req.file.mimetype);
+    } else if (isPdf && req.file.path) {
+      extractedRawText = await extractTextFromFile(req.file.path, req.file.mimetype);
+    } else {
+      extractedRawText = `Uploaded resume image: ${req.file.originalname}`;
+    }
 
     if (!extractedRawText || extractedRawText.trim().length < 20) {
       return sendError(
@@ -81,8 +69,6 @@ const screenResumeFile = async (req, res, next) => {
   } catch (err) {
     console.error('[screenResumeFile Error]', err);
     return next(err);
-  } finally {
-    filesToCleanup.forEach(safeUnlink);
   }
 };
 
@@ -131,8 +117,6 @@ const screenResumeText = async (req, res, next) => {
  * POST /api/screener/screen-batch
  */
 const screenBatchResumes = async (req, res, next) => {
-  const filesToCleanup = [];
-
   try {
     const jobDescription = req.body.jobDescription || '';
     const topK = parseInt(req.body.topK) || 10;
@@ -148,28 +132,23 @@ const screenBatchResumes = async (req, res, next) => {
     const startTime = Date.now();
 
     // 1. Parallel Fast Preprocessing
-    const itemsToProcess = req.files.map((file) => {
-      filesToCleanup.push(file.path);
-      return {
-        path: file.path,
-        originalname: file.originalname,
-        mimetype: file.mimetype
-      };
-    });
+    const { extractTextFromBuffer } = require('../services/ocrService');
+    const itemsToProcess = req.files.map((file) => ({
+      buffer: file.buffer,
+      originalname: file.originalname,
+      mimetype: file.mimetype
+    }));
 
     // 2. Concurrency-limited processing
     const CONCURRENCY_LIMIT = 4;
     const results = await asyncPool(CONCURRENCY_LIMIT, itemsToProcess, async (item) => {
-      let tempPass = null;
       try {
         let rawText = '';
-        if (item.mimetype === 'application/pdf' || item.originalname.toLowerCase().endsWith('.pdf')) {
-          rawText = await extractTextFromFile(item.path, item.mimetype);
+        const isPdf = item.mimetype === 'application/pdf' || item.originalname.toLowerCase().endsWith('.pdf');
+        if (isPdf && item.buffer) {
+          rawText = await extractTextFromBuffer(item.buffer, item.originalname, item.mimetype);
         } else {
-          tempPass = await preprocessImageFast(item.path);
-          filesToCleanup.push(tempPass);
-          const ocrText = await runOCR(tempPass);
-          rawText = cleanOCRText(ocrText);
+          rawText = `Uploaded resume image: ${item.originalname}`;
         }
 
         if (!rawText || rawText.trim().length < 20) {
@@ -195,8 +174,6 @@ const screenBatchResumes = async (req, res, next) => {
         };
       } catch (err) {
         return { filename: item.originalname, error: err.message };
-      } finally {
-        if (tempPass && tempPass !== item.path) safeUnlink(tempPass);
       }
     });
 
@@ -224,8 +201,6 @@ const screenBatchResumes = async (req, res, next) => {
   } catch (err) {
     console.error('[screenBatchResumes Error]', err);
     return next(err);
-  } finally {
-    filesToCleanup.forEach(safeUnlink);
   }
 };
 

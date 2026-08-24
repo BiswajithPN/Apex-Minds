@@ -103,30 +103,21 @@ const uploadResume = asyncHandler(async (req, res) => {
 
   let resumeText = '';
   let analysis = {};
+  const isImage = req.file.mimetype.startsWith('image/') || ['.png', '.jpg', '.jpeg', '.webp', '.bmp'].includes(ext);
 
-  // Check if image (JPEG, PNG, WEBP) or PDF
-  if (req.file.mimetype.startsWith('image/') || ['.png', '.jpg', '.jpeg', '.webp', '.bmp'].includes(ext)) {
-    const { preprocessImageFast, runOCR, cleanOCRText } = require('../services/ocrService');
-    const { extractCandidateSkills } = require('../services/multiCriteriaScoringService');
-
-    try {
-      const processedBuffer = await preprocessImageFast(req.file.buffer);
-      const rawText = await runOCR(processedBuffer);
-      resumeText = cleanOCRText(rawText);
-    } catch (e) {
-      console.warn('[Resume OCR Warning]', e.message);
-      resumeText = `Uploaded resume image: ${req.file.originalname}`;
-    }
-
-    const detectedSkills = extractCandidateSkills(resumeText);
+  if (isImage) {
+    // Image — stored on Cloudinary, no local OCR
+    resumeText = `Uploaded resume image: ${req.file.originalname}`;
     analysis = {
-      skills: detectedSkills,
-      experienceYears: 2,
-      education: 'Verified',
-      completeness: Math.min(100, detectedSkills.length * 15 + 40),
+      skills: [],
+      experienceYears: 0,
+      education: '',
+      completeness: 30,
+      imageOnly: true,
+      note: 'Image resume uploaded. Text extraction requires a PDF for best analysis.',
     };
   } else {
-    // PDF File
+    // PDF — extract text with pdf-parse
     const { parseResume } = require('../services/resumeParserService');
     const { extractCandidateSkills } = require('../services/multiCriteriaScoringService');
     try {
@@ -134,15 +125,16 @@ const uploadResume = asyncHandler(async (req, res) => {
       resumeText = result.resumeText || '';
       const detectedSkills = extractCandidateSkills(resumeText);
       analysis = {
-        skills: detectedSkills.length > 0 ? detectedSkills : (result.analysis?.skills || ['JavaScript', 'React', 'Node.js']),
+        skills: detectedSkills.length > 0 ? detectedSkills : (result.analysis?.skills || []),
         experienceYears: 2,
-        completeness: 85
+        completeness: resumeText.length > 100 ? 85 : 40,
       };
     } catch (e) {
       console.warn('[Resume Parser Warning]', e.message);
-      resumeText = req.file.buffer.toString('utf8');
+      const { extractTextFromBuffer } = require('../services/ocrService');
+      resumeText = await extractTextFromBuffer(req.file.buffer, req.file.originalname, req.file.mimetype);
       const detectedSkills = extractCandidateSkills(resumeText);
-      analysis = { skills: detectedSkills, experienceYears: 1, completeness: 60 };
+      analysis = { skills: detectedSkills, experienceYears: 1, completeness: 50 };
     }
   }
 
