@@ -147,6 +147,11 @@ app.get('/api/applications/job/:jobId', protect, (req, res, next) => {
   return require('./controllers/employerController').getApplicantsForJob(req, res, next);
 });
 
+// Root route — health check for Vercel
+app.get('/', (req, res) => {
+  res.json({ success: true, message: 'HireHub API is live', timestamp: new Date() });
+});
+
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({ success: false, message: `Cannot find ${req.originalUrl} on this server` });
