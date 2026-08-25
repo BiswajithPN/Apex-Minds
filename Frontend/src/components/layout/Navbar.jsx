@@ -112,7 +112,7 @@ export default function Navbar({ onMenuClick }) {
       <div className="flex items-center gap-1 sm:gap-3 shrink-0">
 
         {/* Notification Bell */}
-        <div className="relative" ref={notifRef}>
+        <div className="relative z-[60]" ref={notifRef}>
           <button
             onClick={() => setNotifOpen(!notifOpen)}
             className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors relative"
@@ -128,7 +128,7 @@ export default function Navbar({ onMenuClick }) {
 
           {/* Notifications Dropdown */}
           {notifOpen && (
-            <div className="absolute right-0 mt-2 mr-2 w-[calc(100vw-2.5rem)] sm:w-80 bg-white rounded-2xl shadow-2xl shadow-black/15 border border-slate-200 py-2 z-50">
+            <div className="absolute right-0 mt-2 mr-2 w-[calc(100vw-2.5rem)] sm:w-80 bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.18)] border border-slate-200 py-2 z-[200] isolate">
               <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
                 <p className="text-xs font-black text-slate-900 uppercase tracking-wider">Notifications</p>
                 {unreadCount > 0 && (
@@ -203,7 +203,7 @@ export default function Navbar({ onMenuClick }) {
 
           {/* User Dropdown */}
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl shadow-black/15 border border-slate-200 py-2 z-50">
+            <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl shadow-black/15 border border-slate-200 py-2 z-[100]">
               <div className="px-4 py-2.5 border-b border-slate-100">
                 <p className="text-sm font-bold text-slate-900 truncate">{user?.name || user?.full_name}</p>
                 <p className="text-xs text-slate-500 truncate mt-0.5">{user?.email}</p>
