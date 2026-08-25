@@ -109,10 +109,10 @@ export default function Navbar({ onMenuClick }) {
       </div>
 
       {/* Right — notifications + user menu */}
-      <div className="flex items-center gap-1 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-3 shrink-0 relative z-[60]">
 
         {/* Notification Bell */}
-        <div className="relative z-[60]" ref={notifRef}>
+        <div className="relative" ref={notifRef}>
           <button
             onClick={() => setNotifOpen(!notifOpen)}
             className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors relative"
@@ -128,7 +128,10 @@ export default function Navbar({ onMenuClick }) {
 
           {/* Notifications Dropdown */}
           {notifOpen && (
-            <div className="absolute right-0 mt-2 mr-2 w-[calc(100vw-2.5rem)] sm:w-80 bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.18)] border border-slate-200 py-2 z-[200] isolate">
+            <>
+            {/* Backdrop */}
+            <div className="fixed inset-0 bg-black/20 z-[199] sm:hidden" onClick={() => setNotifOpen(false)} />
+            <div className="absolute right-0 mt-2 sm:mr-0 w-[calc(100vw-1.5rem)] sm:w-80 bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.18)] border border-slate-200 py-2 z-[200] isolate">
               <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
                 <p className="text-xs font-black text-slate-900 uppercase tracking-wider">Notifications</p>
                 {unreadCount > 0 && (
@@ -179,6 +182,7 @@ export default function Navbar({ onMenuClick }) {
                 </div>
               )}
             </div>
+            </>
           )}
         </div>
 
