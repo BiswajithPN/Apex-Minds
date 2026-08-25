@@ -25,24 +25,32 @@ const screenResumeFile = async (req, res, next) => {
       return sendError(res, 400, 'Resume file (image or PDF) is required.');
     }
 
-    // 1. Extract text from file (PDF via buffer, images — no OCR)
-    console.log(`[Screener] Processing single file: ${req.file.originalname}`);
+    // 1. Extract text from file
+    console.log(`[Screener] Processing single file: ${req.file.originalname} (${req.file.mimetype})`);
     const isPdf = req.file.mimetype === 'application/pdf' || req.file.originalname.toLowerCase().endsWith('.pdf');
+
+    // Image files cannot be analyzed without OCR — reject with clear message
+    if (!isPdf) {
+      return sendError(
+        res,
+        400,
+        'Image-based resumes cannot be analyzed for text. Please upload a PDF resume, or use the "Paste Text" tab to enter resume content manually.'
+      );
+    }
+
     let extractedRawText = '';
-    if (isPdf && req.file.buffer) {
+    if (req.file.buffer) {
       const { extractTextFromBuffer } = require('../services/ocrService');
       extractedRawText = await extractTextFromBuffer(req.file.buffer, req.file.originalname, req.file.mimetype);
-    } else if (isPdf && req.file.path) {
+    } else if (req.file.path) {
       extractedRawText = await extractTextFromFile(req.file.path, req.file.mimetype);
-    } else {
-      extractedRawText = `Uploaded resume image: ${req.file.originalname}`;
     }
 
     if (!extractedRawText || extractedRawText.trim().length < 20) {
       return sendError(
         res,
         400,
-        'Could not extract sufficient text from the file. Please upload a higher resolution or clearer document.'
+        'Could not extract text from this PDF. It may be a scanned/image-based document. Please upload a text-based PDF, or use the "Paste Text" tab to enter resume content manually.'
       );
     }
 
@@ -145,14 +153,18 @@ const screenBatchResumes = async (req, res, next) => {
       try {
         let rawText = '';
         const isPdf = item.mimetype === 'application/pdf' || item.originalname.toLowerCase().endsWith('.pdf');
-        if (isPdf && item.buffer) {
+
+        // Skip image files — no OCR available
+        if (!isPdf) {
+          return { filename: item.originalname, error: 'Image file cannot be analyzed — please upload a text-based PDF' };
+        }
+
+        if (item.buffer) {
           rawText = await extractTextFromBuffer(item.buffer, item.originalname, item.mimetype);
-        } else {
-          rawText = `Uploaded resume image: ${item.originalname}`;
         }
 
         if (!rawText || rawText.trim().length < 20) {
-          return { filename: item.originalname, error: 'Insufficient text extracted' };
+          return { filename: item.originalname, error: 'Could not extract text from this PDF (may be scanned/image-based). Please upload a text-based PDF.' };
         }
 
         const { cleanedText: redactedText, redactionLog } = redactIdentityFields(rawText);

@@ -120,25 +120,25 @@ export default function Navbar({ onMenuClick }) {
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center">
-                {unreadCount}
+              <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center px-1 ring-2 ring-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </button>
 
           {/* Notifications Dropdown */}
           {notifOpen && (
-            <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-sm sm:w-96 bg-white rounded-2xl shadow-2xl shadow-black/15 border border-slate-200 py-2 z-50">
+            <div className="absolute right-0 mt-2 mr-2 w-[calc(100vw-2.5rem)] sm:w-80 bg-white rounded-2xl shadow-2xl shadow-black/15 border border-slate-200 py-2 z-50">
               <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between">
                 <p className="text-xs font-black text-slate-900 uppercase tracking-wider">Notifications</p>
                 {unreadCount > 0 && (
-                  <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
                     {unreadCount} unread
                   </span>
                 )}
               </div>
 
-              <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+              <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
                 {notifications.length === 0 ? (
                   <div className="py-10 text-center text-sm text-slate-400 font-medium">
                     No new notifications
@@ -148,29 +148,31 @@ export default function Navbar({ onMenuClick }) {
                     <div
                       key={notif._id}
                       onClick={() => handleMarkAsRead(notif._id)}
-                      className={`p-3.5 hover:bg-slate-50 transition-colors cursor-pointer space-y-1 ${!notif.read ? 'bg-blue-50/30' : ''}`}
+                      className={`px-4 py-3 hover:bg-slate-50 transition-colors cursor-pointer ${!notif.read ? 'bg-blue-50/30' : ''}`}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                          {notif.title}
-                        </p>
-                        {!notif.read && <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 mt-1" />}
+                      <div className="flex items-start gap-2.5">
+                        <Sparkles className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-[13px] font-bold text-slate-900 leading-snug truncate">{notif.title}</p>
+                            {!notif.read && <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />}
+                          </div>
+                          <p className="text-xs text-slate-500 leading-relaxed mt-0.5 line-clamp-2">{notif.message}</p>
+                          <p className="text-[10px] text-slate-400 mt-1">
+                            {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">{notif.message}</p>
-                      <p className="text-[11px] text-slate-400">
-                        {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </p>
                     </div>
                   ))
                 )}
               </div>
 
               {role === 'jobseeker' && (
-                <div className="p-2.5 border-t border-slate-100 text-center">
+                <div className="px-4 py-2.5 border-t border-slate-100">
                   <button
                     onClick={() => { setNotifOpen(false); navigate('/jobseeker/applications'); }}
-                    className="text-xs font-extrabold text-emerald-600 hover:text-emerald-700"
+                    className="w-full text-center text-xs font-bold text-emerald-600 hover:text-emerald-700 py-1"
                   >
                     View All in My Applications →
                   </button>

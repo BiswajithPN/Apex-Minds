@@ -23,7 +23,6 @@ import {
   User,
   Mail,
   MapPin,
-  Image,
   FolderOpen,
   Sliders,
   Target,
@@ -205,7 +204,7 @@ export default function ResumeScreener() {
     try {
       if (singleMode === 'upload') {
         if (!singleFile) {
-          setSingleError('Please browse or drop a resume file (JPEG, PNG, or PDF).');
+          setSingleError('Please browse or drop a PDF resume file.');
           setSingleLoading(false);
           return;
         }
@@ -398,7 +397,7 @@ export default function ResumeScreener() {
     );
   };
 
-  const acceptedFormats = '.jpg,.jpeg,.png,.webp,.bmp,.pdf,image/jpeg,image/png,image/webp,image/bmp,application/pdf';
+  const acceptedFormats = '.pdf,application/pdf';
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-fade-in pb-12">
@@ -714,7 +713,7 @@ export default function ResumeScreener() {
               </Card>
             </div>
 
-            {/* Right: Resume File Upload (JPEG / PNG / PDF) */}
+            {/* Right: Resume File Upload (PDF) */}
             <div className="lg:col-span-7 space-y-4">
               <Card padding="md" className="space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -731,7 +730,7 @@ export default function ResumeScreener() {
                         singleMode === 'upload' ? 'bg-white text-accent-600 shadow-sm' : 'text-slate-500'
                       }`}
                     >
-                      Upload File (JPEG / PNG / PDF)
+                      Upload PDF Resume
                     </button>
                     <button
                       type="button"
@@ -770,11 +769,7 @@ export default function ResumeScreener() {
                       />
 
                       <div className="w-12 h-12 rounded-2xl bg-accent-100 text-accent-600 flex items-center justify-center mx-auto mb-3">
-                        {singleFile?.type?.startsWith('image/') ? (
-                          <Image className="w-6 h-6" />
-                        ) : (
-                          <Upload className="w-6 h-6" />
-                        )}
+                        <Upload className="w-6 h-6" />
                       </div>
 
                       {singleFile ? (
@@ -798,10 +793,10 @@ export default function ResumeScreener() {
                       ) : (
                         <div className="space-y-3">
                           <p className="text-sm font-semibold text-slate-700">
-                            Drag & drop resume here, or browse from your device
+                            Drag & drop a PDF resume here, or browse from your device
                           </p>
                           <p className="text-xs text-slate-400">
-                            Supports <strong>JPEG (.jpg, .jpeg)</strong>, <strong>PNG (.png)</strong>, <strong>WEBP</strong>, and <strong>PDF</strong> (Max 25MB)
+                            Supports <strong>PDF</strong> files only (Max 25MB)
                           </p>
 
                           <div>
@@ -1113,7 +1108,7 @@ export default function ResumeScreener() {
           <Card padding="md" className="space-y-4">
             <h2 className="font-bold text-slate-900 flex items-center gap-2 text-base">
               <Users className="w-4 h-4 text-accent-500" />
-              Bulk Upload Resumes (JPEG, PNG & PDF) to Compare Against "{selectedJobData?.title || 'Selected Job'}"
+              Bulk Upload PDF Resumes to Compare Against "{selectedJobData?.title || 'Selected Job'}"
             </h2>
 
             <div
@@ -1145,7 +1140,7 @@ export default function ResumeScreener() {
               {batchFiles.length > 0 ? (
                 <div className="space-y-2">
                   <p className="text-sm font-bold text-accent-600">{batchFiles.length} Resumes Selected</p>
-                  <p className="text-xs text-slate-500">Files ready for parallel OCR batch processing</p>
+                  <p className="text-xs text-slate-500">Files ready for batch text extraction and screening</p>
                   <div className="pt-2">
                     <Button
                       type="button"
@@ -1164,7 +1159,7 @@ export default function ResumeScreener() {
                     Drag & drop multiple resumes, or browse from your device
                   </p>
                   <p className="text-xs text-slate-400">
-                    Supports <strong>JPEG (.jpg, .jpeg)</strong>, <strong>PNG (.png)</strong>, <strong>WEBP</strong>, and <strong>PDF</strong> (Up to 150 files)
+                    Supports <strong>PDF</strong> files only (Up to 150 files)
                   </p>
 
                   <div>

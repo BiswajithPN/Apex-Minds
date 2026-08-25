@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
 import { Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import api from '../../api/axiosInstance';
@@ -13,7 +12,6 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   useEffect(() => {
     if (isAuthenticated()) {
@@ -45,22 +43,6 @@ export default function Login() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    setLoading(true);
-    setError('');
-    try {
-      const { data } = await api.post('/auth/google', {
-        credential: credentialResponse.credential,
-        isSignUp: false,
-      });
-      login(data.token, data.user);
-      navigate(homePath(data.user.role), { replace: true });
-    } catch (err) {
-      setError(err.response?.data?.message || 'Account not found. Please create an account first.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen w-full bg-white font-sans flex flex-col lg:flex-row">
@@ -121,36 +103,6 @@ export default function Login() {
               {error}
             </div>
           )}
-
-          {/* Google Sign-In */}
-          <div className="flex justify-center">
-            {googleClientId ? (
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => setError('Google Authentication Failed.')}
-                theme="outline"
-                size="large"
-                shape="pill"
-                text="signin_with"
-                width="320"
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={() => setError('Google Sign-In is not configured.')}
-                className="w-full py-3 px-4 border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2.5 transition-colors"
-              >
-                Sign in with Google
-              </button>
-            )}
-          </div>
-
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-slate-200" />
-            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">or</span>
-            <div className="flex-1 h-px bg-slate-200" />
-          </div>
 
           {/* Email / Password form */}
           <form onSubmit={handleEmailLogin} className="space-y-4">
