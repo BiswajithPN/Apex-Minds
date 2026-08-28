@@ -271,7 +271,7 @@ const changePassword = asyncHandler(async (req, res) => {
   }
 
   // Google users setting their first password — no current password needed
-  if (user.google_id && !user.password) {
+  if (user.google_id) {
     user.password = newPassword;
     await user.save();
     sendPasswordChangeEmail(user.email);
