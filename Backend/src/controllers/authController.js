@@ -77,17 +77,21 @@ const loginUser = asyncHandler(async (req, res) => {
     return sendError(res, 404, 'Account not found with this email. Please sign up first.');
   }
 
-  if (!user.is_active) {
-    return sendError(res, 403, 'Account has been deactivated. Please contact support.');
-  }
-
-  // If user signed up via Google, they cannot use email/password login
+  // If user signed up via Google, they cannot use email/password login — check this FIRST
   if (user.google_id) {
-    // Reset any lockout since password login is not supported
-    if (user.isLocked) {
-      await user.updateOne({ $set: { loginAttempts: 0 }, $unset: { lockUntil: 1 } });
+    // Reset any lockout and auto-reactivate since password login is not supported
+    const needsFix = user.isLocked || !user.is_active;
+    if (needsFix) {
+      await user.updateOne({
+        $set: { loginAttempts: 0, is_active: true },
+        $unset: { lockUntil: 1 },
+      });
     }
     return sendError(res, 400, 'This account uses Google Sign-In. Please use the "Sign in with Google" button.');
+  }
+
+  if (!user.is_active) {
+    return sendError(res, 403, 'Account has been deactivated. Please contact support.');
   }
 
   if (user.isLocked) {
@@ -197,12 +201,17 @@ const googleAuth = asyncHandler(async (req, res) => {
       );
     }
 
+    // Auto-reactivate deactivated Google accounts
+    if (!user.is_active) {
+      user.is_active = true;
+    }
+
     // Link Google ID and avatar if not yet linked
     if (!user.google_id) {
       user.google_id = google_id;
       if (picture && !user.avatar) user.avatar = picture;
-      await user.save();
     }
+    await user.save();
   }
 
   const token = generateToken({ id: user._id, role: user.role, email: user.email });
