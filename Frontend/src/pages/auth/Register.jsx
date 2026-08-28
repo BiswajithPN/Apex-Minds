@@ -21,6 +21,7 @@ export default function Register() {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     setLoading(true);
+    localStorage.removeItem("hirehub-auth");
     setError('');
     try {
       const { data } = await api.post('/auth/google', {
@@ -173,6 +174,7 @@ export default function Register() {
             {googleClientId ? (
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
+                prompt="select_account"
                 onError={() => setError('Google Authentication Failed.')}
                 theme="outline"
                 size="large"
