@@ -26,21 +26,18 @@ const navConfig = {
     { to: '/jobseeker/jobs', icon: Search, label: 'Search Jobs' },
     { to: '/jobseeker/applications', icon: ClipboardList, label: 'My Applications' },
     { to: '/jobseeker/recommendations', icon: Sparkles, label: 'AI Recommendations' },
-    { to: '/change-password', icon: KeyRound, label: 'Change Password' },
   ],
   employer: [
     { to: '/employer/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/employer/company', icon: Building2, label: 'Company Profile' },
     { to: '/employer/post-job', icon: PlusCircle, label: 'Post Job' },
     { to: '/employer/jobs', icon: Briefcase, label: 'Manage Jobs' },
-    { to: '/change-password', icon: KeyRound, label: 'Change Password' },
   ],
   admin: [
     { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/admin/users', icon: Users, label: 'User Directory & Control' },
     { to: '/admin/flagged', icon: Flag, label: 'Flagged Job Postings' },
     { to: '/admin/analytics', icon: BarChart3, label: 'System & Bias Analytics' },
-    { to: '/change-password', icon: KeyRound, label: 'Change Password' },
   ],
 };
 
@@ -86,7 +83,7 @@ export default function Sidebar({ isOpen, onClose }) {
             const Icon = link.icon;
             const isActive =
               location.pathname === link.to ||
-              (link.to !== '/change-password' && location.pathname.startsWith(link.to + '/'));
+              location.pathname.startsWith(link.to + '/');
 
             return (
               <NavLink

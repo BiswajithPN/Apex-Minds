@@ -214,13 +214,6 @@ export default function Navbar({ onMenuClick }) {
               </div>
               <div className="p-1.5 space-y-0.5">
                 <button
-                  onClick={() => { setDropdownOpen(false); navigate('/change-password'); }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
-                >
-                  <KeyRound className="w-4 h-4 text-slate-400" />
-                  Change Password
-                </button>
-                <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
                 >
