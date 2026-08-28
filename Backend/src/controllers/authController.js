@@ -73,7 +73,7 @@ const loginUser = asyncHandler(async (req, res) => {
     return sendError(res, 400, 'Please provide email and password');
   }
 
-  const user = await User.findOne({ email: email.toLowerCase() }).select('+password +loginAttempts +lockUntil google_id');
+  const user = await User.findOne({ email: email.toLowerCase() }).select('+password +loginAttempts +lockUntil +is_active google_id');
   if (!user) {
     return sendError(res, 404, 'Account not found with this email. Please sign up first.');
   }
