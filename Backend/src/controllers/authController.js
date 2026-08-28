@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
 const JobSeekerProfile = require('../models/JobSeekerProfile');
@@ -73,7 +72,7 @@ const loginUser = asyncHandler(async (req, res) => {
     return sendError(res, 400, 'Please provide email and password');
   }
 
-  const user = await User.findOne({ email: email.toLowerCase() }).select('+password +loginAttempts +lockUntil');
+  const user = await User.findOne({ email: email.toLowerCase() }).select('+password +loginAttempts +lockUntil google_id');
   if (!user) {
     return sendError(res, 404, 'Account not found with this email. Please sign up first.');
   }
@@ -82,12 +81,26 @@ const loginUser = asyncHandler(async (req, res) => {
     return sendError(res, 403, 'Account has been deactivated. Please contact support.');
   }
 
+  // If user signed up via Google, they cannot use email/password login
+  if (user.google_id) {
+    // Reset any lockout since password login is not supported
+    if (user.isLocked) {
+      await user.updateOne({ $set: { loginAttempts: 0 }, $unset: { lockUntil: 1 } });
+    }
+    return sendError(res, 400, 'This account uses Google Sign-In. Please use the "Sign in with Google" button.');
+  }
+
   if (user.isLocked) {
     return sendError(
       res,
       429,
       'Account locked due to too many failed login attempts. Try again after 15 minutes.'
     );
+  }
+
+  // If user has no password set, block password login
+  if (!user.password) {
+    return sendError(res, 400, 'This account has no password set. Please sign in with Google.');
   }
 
   const isMatch = await user.comparePassword(password);
@@ -154,7 +167,6 @@ const googleAuth = asyncHandler(async (req, res) => {
     // Create new account with the selected role
     const allowedRoles = ['jobseeker', 'employer'];
     const userRole = allowedRoles.includes(role) ? role : 'jobseeker';
-    const randomHash = crypto.randomBytes(16).toString('hex');
 
     user = await User.create({
       full_name: name || 'Google User',
@@ -162,7 +174,6 @@ const googleAuth = asyncHandler(async (req, res) => {
       google_id,
       avatar: picture || '',
       role: userRole,
-      password: randomHash,
       is_verified: true,
       is_active: true,
     });
