@@ -58,7 +58,7 @@ export default function Login() {
         {/* Logo */}
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center shadow-lg shadow-black/10">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#92400e] via-[#78350f] to-[#451a03] border border-[#b45309]/30 flex items-center justify-center shadow-lg shadow-amber-950/30">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
                 <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
@@ -79,7 +79,7 @@ export default function Login() {
 
           <h1 className="text-3xl sm:text-4xl lg:text-[2.8rem] font-black leading-[1.08] tracking-tight">
             Smart<br />
-            <span className="text-emerald-200">Recruitment</span><br />
+            <span className="text-white">Recruitment</span><br />
             Made Simple
           </h1>
           <p className="mt-4 text-emerald-100/40 text-sm sm:text-base max-w-sm leading-relaxed">
