@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { User, Building2, ShieldCheck } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Sparkles, BarChart3, Users } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import api from '../../api/axiosInstance';
 
 export default function Register() {
   const navigate = useNavigate();
-  const { login, isAuthenticated, homePath } = useAuthStore();
-  const [role, setRole] = useState('jobseeker');
+  const { login, homePath, isAuthenticated } = useAuthStore();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -30,107 +29,147 @@ export default function Register() {
         isSignUp: true,
       });
       login(data.token, data.user);
-      if (data.user.role === 'jobseeker') {
-        navigate('/jobseeker/profile?onboarding=1', { replace: true });
-      } else {
-        navigate(homePath(data.user.role), { replace: true });
-      }
+      if (data.user.role === "jobseeker") { navigate("/jobseeker/profile?onboarding=1", { replace: true }); } else { navigate(homePath(data.user.role), { replace: true }); }
     } catch (err) {
-      setError(err.response?.data?.message || 'Google registration failed. Please try again.');
+      setError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full bg-white font-sans flex flex-col lg:flex-row">
+    <div className="min-h-screen w-full bg-white font-sans flex flex-col lg:flex-row overflow-hidden">
 
-      {/* ── HERO BANNER ── */}
-      <div className="bg-gradient-to-br from-[#033d32] via-[#044e3f] to-[#065f46] text-white relative overflow-hidden
-                      px-5 py-6 sm:px-10 sm:pt-12 sm:pb-10
-                      lg:w-[45%] lg:min-h-screen lg:flex lg:flex-col lg:justify-between lg:px-14 lg:py-14">
+      {/* ── HERO PANEL ── */}
+      <div className="relative bg-gradient-to-br from-[#022a22] via-[#033d32] to-[#065f46] text-white overflow-hidden
+                      px-6 py-8 sm:px-10 sm:pt-14 sm:pb-10
+                      lg:w-[48%] lg:min-h-screen lg:flex lg:flex-col lg:justify-between lg:px-16 lg:py-12">
 
-        <div className="absolute -top-32 -right-32 w-96 h-96 bg-emerald-400/8 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-teal-400/8 rounded-full blur-3xl pointer-events-none" />
+        {/* Decorative blurs */}
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-emerald-400/[0.07] rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-teal-300/[0.05] rounded-full blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-amber-400/[0.04] rounded-full blur-[80px] pointer-events-none" />
 
-        {/* Logo + badge */}
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+          backgroundSize: '32px 32px'
+        }} />
+
+        {/* Logo */}
         <div className="relative z-10">
-          <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-9 h-9 rounded-lg bg-[#2d7a6a] flex items-center justify-center">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 flex items-center justify-center shadow-lg shadow-black/10">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
                 <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
               </svg>
             </div>
-            <span className="text-xl font-black tracking-tight text-white">Hire<span className="text-amber-400">Hub</span></span>
-          </div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-400/15 border border-emerald-400/25 text-emerald-300 text-[10px] font-bold uppercase tracking-widest">
-            <ShieldCheck className="w-3 h-3 shrink-0" />
-            Bias-Free Recruitment
+            <span className="text-2xl font-black tracking-tight">
+              Hire<span className="text-amber-400">Hub</span>
+            </span>
           </div>
         </div>
 
         {/* Headline */}
-        <div className="relative z-10 mt-4 lg:mt-6 lg:my-0 lg:flex-1 lg:flex lg:flex-col lg:justify-center">
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black leading-[1.1] tracking-tight text-white">
-            Start Your <span className="text-white">Career Journey</span>
+        <div className="relative z-10 mt-8 lg:mt-0 lg:flex-1 lg:flex lg:flex-col lg:justify-center lg:my-0">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-400/10 border border-emerald-400/20 text-emerald-300 text-[10px] font-bold uppercase tracking-[0.15em] mb-6 w-fit">
+            <ShieldCheck className="w-3 h-3 shrink-0" />
+            Bias-Free Recruitment
+          </div>
+
+          <h1 className="text-3xl sm:text-4xl lg:text-[2.8rem] font-black leading-[1.08] tracking-tight">
+            Smart<br />
+            <span className="text-emerald-200">Recruitment</span><br />
+            Made Simple
           </h1>
-          <p className="mt-2 text-emerald-100/50 text-xs sm:text-sm lg:text-base max-w-sm leading-relaxed">
+          <p className="mt-4 text-emerald-100/40 text-sm sm:text-base max-w-sm leading-relaxed">
             AI-powered resume screening with explainable scoring and zero bias.
           </p>
+
+          {/* Feature pills */}
+          <div className="flex flex-wrap gap-2 mt-8">
+            {[
+              { icon: <BarChart3 className="w-3.5 h-3.5" />, text: 'Multi-Criteria Scoring' },
+              { icon: <Users className="w-3.5 h-3.5" />, text: 'Bias-Free Matching' },
+              { icon: <Sparkles className="w-3.5 h-3.5" />, text: 'AI-Powered Insights' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-emerald-100/60 text-[11px] font-semibold">
+                {item.icon}
+                {item.text}
+              </div>
+            ))}
+          </div>
         </div>
 
+        {/* Footer stats */}
+        <div className="relative z-10 mt-8 lg:mt-0 hidden sm:flex items-center gap-8">
+          <div>
+            <p className="text-2xl font-black text-white">540+</p>
+            <p className="text-[11px] text-emerald-100/40 font-semibold">Applications</p>
+          </div>
+          <div className="w-px h-8 bg-white/10" />
+          <div>
+            <p className="text-2xl font-black text-white">1250+</p>
+            <p className="text-[11px] text-emerald-100/40 font-semibold">Users</p>
+          </div>
+          <div className="w-px h-8 bg-white/10" />
+          <div>
+            <p className="text-2xl font-black text-white">GDPR</p>
+            <p className="text-[11px] text-emerald-100/40 font-semibold">Compliant</p>
+          </div>
+        </div>
       </div>
 
       {/* ── FORM PANEL ── */}
-      <div className="flex-1 flex items-start justify-center
-                      px-5 py-8
-                      sm:px-8 sm:py-10
-                      lg:items-center lg:px-14 lg:py-14">
-        <div className="w-full max-w-sm space-y-4">
+      <div className="flex-1 flex items-center justify-center relative
+                      px-6 py-10
+                      sm:px-10 sm:py-12
+                      lg:px-16 lg:py-14">
+
+        {/* Subtle bg pattern */}
+        <div className="absolute inset-0 opacity-[0.015]" style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, #033d32 1px, transparent 0)',
+          backgroundSize: '40px 40px'
+        }} />
+
+        <div className="w-full max-w-[380px] space-y-8 relative z-10">
 
           {/* Heading */}
           <div>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Create account</h2>
-            <p className="text-sm text-slate-500 font-medium mt-1">Select your role & sign up</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">Create account</h2>
+            <p className="text-sm text-slate-500 font-medium mt-2">Select your role and sign up</p>
           </div>
 
-          {/* Error */}
+          {/* Error banner */}
           {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-xl font-semibold">
+            <div className="p-4 bg-rose-50 border border-rose-200 text-rose-700 text-sm rounded-2xl font-semibold flex items-start gap-2">
+              <span className="text-rose-400 mt-0.5">⚠</span>
               {error}
             </div>
           )}
 
+
           {/* Role picker */}
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-2 gap-3">
             {[
-              { value: 'jobseeker', icon: <User className="w-3.5 h-3.5" />, label: 'Job Seeker', sub: 'Find jobs with AI scores' },
-              { value: 'employer', icon: <Building2 className="w-3.5 h-3.5" />, label: 'Employer', sub: 'Hire pre-screened talent' },
-            ].map(({ value, icon, label, sub }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setRole(value)}
-                className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
-                  role === value
-                    ? 'border-emerald-600 bg-emerald-50'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-0.5">
-                  <div className={`p-1 rounded-lg ${role === value ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
-                    {icon}
+              { value: "jobseeker", icon: "UserCheck", label: "Job Seeker", sub: "Find jobs with AI scores" },
+              { value: "employer", icon: "Briefcase", label: "Employer", sub: "Hire pre-screened talent" },
+            ].map((r) => (
+              <button key={r.value} type="button" onClick={() => setRole(r.value)} className={"p-4 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer " + (role === r.value ? "border-emerald-500 bg-emerald-50/80 shadow-lg shadow-emerald-500/10" : "border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50")}>
+                <div className="flex items-center gap-2.5 mb-1.5">
+                  <div className={"p-1.5 rounded-lg " + (role === r.value ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500")}>
+                    {r.icon === "UserCheck" ? <UserCheck className="w-4 h-4" /> : <Briefcase className="w-4 h-4" />}
                   </div>
-                  <span className="font-extrabold text-xs text-slate-900">{label}</span>
+                  <span className="font-extrabold text-sm text-slate-900">{r.label}</span>
                 </div>
-                <p className="text-[11px] text-slate-500 font-semibold leading-tight">{sub}</p>
+                <p className="text-[11px] text-slate-500 font-semibold leading-tight pl-[34px]">{r.sub}</p>
               </button>
             ))}
           </div>
 
-          {/* Google Sign-Up */}
-          <div className="flex justify-center">
+          {/* Google Sign-In */}
+          <div>
             {googleClientId ? (
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
@@ -139,23 +178,29 @@ export default function Register() {
                 size="large"
                 shape="pill"
                 text="signup_with"
-                width="320"
+                width="380"
               />
             ) : (
               <button
                 type="button"
-                onClick={() => setError('Google Sign-Up is not configured.')}
-                className="w-full py-3 px-4 border border-slate-300 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2.5 transition-colors"
+                onClick={() => setError('Google Sign-In is not configured.')}
+                className="w-full py-3.5 px-5 border-2 border-slate-200 rounded-2xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 flex items-center justify-center gap-3 transition-all cursor-pointer"
               >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
                 Sign up with Google
               </button>
             )}
           </div>
 
           {/* Footer */}
-          <p className="text-center text-sm text-slate-500 pb-6 lg:pb-0">
+          <p className="text-center text-sm text-slate-500 pt-2">
             Already have an account?{' '}
-            <Link to="/login" className="font-extrabold text-emerald-700 hover:text-emerald-800">
+            <Link to="/login" className="font-extrabold text-emerald-600 hover:text-emerald-700 transition-colors">
               Sign in
             </Link>
           </p>
