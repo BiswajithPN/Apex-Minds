@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { ShieldCheck, ArrowRight, Sparkles, BarChart3, Users } from 'lucide-react';
+import { ShieldCheck, UserCheck, Briefcase, Sparkles, BarChart3, Users } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import api from '../../api/axiosInstance';
 
@@ -9,6 +9,7 @@ export default function Register() {
   const navigate = useNavigate();
   const { login, homePath, isAuthenticated } = useAuthStore();
   const [error, setError] = useState('');
+  const [role, setRole] = useState('jobseeker');
   const [loading, setLoading] = useState(false);
 
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -85,7 +86,7 @@ export default function Register() {
             Made Simple
           </h1>
           <p className="mt-4 text-emerald-100/40 text-sm sm:text-base max-w-sm leading-relaxed">
-            AI-powered resume screening with explainable scoring and zero bias.
+            Join thousands of professionals using AI-powered hiring to find their next role.
           </p>
 
           {/* Feature pills */}
@@ -150,17 +151,18 @@ export default function Register() {
             </div>
           )}
 
-
+          
           {/* Role picker */}
           <div className="grid grid-cols-2 gap-3">
             {[
-              { value: "jobseeker", icon: "UserCheck", label: "Job Seeker", sub: "Find jobs with AI scores" },
-              { value: "employer", icon: "Briefcase", label: "Employer", sub: "Hire pre-screened talent" },
+              { value: 'jobseeker', label: 'Job Seeker', sub: 'Find jobs with AI scores' },
+              { value: 'employer', label: 'Employer', sub: 'Hire pre-screened talent' },
             ].map((r) => (
-              <button key={r.value} type="button" onClick={() => setRole(r.value)} className={"p-4 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer " + (role === r.value ? "border-emerald-500 bg-emerald-50/80 shadow-lg shadow-emerald-500/10" : "border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50")}>
+              <button key={r.value} type="button" onClick={() => setRole(r.value)}
+                className={`p-4 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer ${role === r.value ? 'border-emerald-500 bg-emerald-50/80 shadow-lg shadow-emerald-500/10' : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50'}`}>
                 <div className="flex items-center gap-2.5 mb-1.5">
-                  <div className={"p-1.5 rounded-lg " + (role === r.value ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500")}>
-                    {r.icon === "UserCheck" ? <UserCheck className="w-4 h-4" /> : <Briefcase className="w-4 h-4" />}
+                  <div className={`p-1.5 rounded-lg ${role === r.value ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                    {r.value === 'jobseeker' ? <UserCheck className="w-4 h-4" /> : <Briefcase className="w-4 h-4" />}
                   </div>
                   <span className="font-extrabold text-sm text-slate-900">{r.label}</span>
                 </div>
@@ -194,7 +196,7 @@ export default function Register() {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                 </svg>
-                Sign up with Google
+                Sign in with Google
               </button>
             )}
           </div>
@@ -203,7 +205,7 @@ export default function Register() {
           <p className="text-center text-sm text-slate-500 pt-2">
             Already have an account?{' '}
             <Link to="/login" className="font-extrabold text-emerald-600 hover:text-emerald-700 transition-colors">
-              Sign in
+              Create one
             </Link>
           </p>
         </div>
