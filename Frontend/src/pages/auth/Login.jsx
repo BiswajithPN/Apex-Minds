@@ -78,9 +78,9 @@ export default function Login() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-[2.8rem] font-black leading-[1.08] tracking-tight">
-            Smart<br />
+            <span className="text-white">Smart</span><br />
             <span className="text-white">Recruitment</span><br />
-            Made Simple
+            <span className="text-white">Made Simple</span>
           </h1>
           <p className="mt-4 text-emerald-100/40 text-sm sm:text-base max-w-sm leading-relaxed">
             AI-powered resume screening with explainable scoring and zero bias.
