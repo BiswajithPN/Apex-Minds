@@ -25,8 +25,11 @@ const app = express();
 // ── GZIP Compression (reduces response size by ~70%) ──────────────────────────
 app.use(compression({ level: 6, threshold: 1024 }));
 
-// Security Headers
-app.use(helmet());
+// Security Headers (relaxed for cross-origin API between frontend & backend)
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 
 // Logging
 if (env.NODE_ENV === 'development') {
@@ -34,7 +37,12 @@ if (env.NODE_ENV === 'development') {
 }
 
 // CORS Policy
-const allowedOrigins = [env.FRONTEND_ORIGIN, 'http://localhost:5173', 'http://127.0.0.1:5173'].filter(Boolean);
+const allowedOrigins = [
+  env.FRONTEND_ORIGIN,
+  'https://hire-hub-lilac-eight.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+].filter(Boolean);
 app.use(
   cors({
     origin: function (origin, callback) {
