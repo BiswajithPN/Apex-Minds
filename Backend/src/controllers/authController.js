@@ -58,6 +58,7 @@ const registerUser = asyncHandler(async (req, res) => {
         email: user.email,
         role: user.role,
         avatar: user.avatar,
+        google_id: user.google_id || null,
       },
     },
     'Account registered successfully'
@@ -79,22 +80,28 @@ const loginUser = asyncHandler(async (req, res) => {
 
   // If user signed up via Google, they cannot use email/password login — check this FIRST
   if (user.google_id) {
-    // Reset any lockout and auto-reactivate since password login is not supported
-    const needsFix = user.isLocked || !user.is_active;
-    if (needsFix) {
-      await user.updateOne({
-        $set: { loginAttempts: 0, is_active: true },
-        $unset: { lockUntil: 1 },
-      });
+    // If user has set a password, allow email/password login
+    if (user.password) {
+      // Reset any lockout
+      if (user.isLocked) {
+        await user.updateOne({ $set: { loginAttempts: 0, is_active: true }, $unset: { lockUntil: 1 } });
+      }
+      // Fall through to normal password comparison below
+    } else {
+      // No password set — guide user to set one
+      if (user.isLocked || !user.is_active) {
+        await user.updateOne({ $set: { loginAttempts: 0, is_active: true }, $unset: { lockUntil: 1 } });
+      }
+      return sendError(res, 400, 'This account was created with Google and has no password yet. Please set a password in your Profile → Change Password, or use Google Sign-In.');
     }
-    return sendError(res, 400, 'This account uses Google Sign-In. Please use the "Sign in with Google" button.');
   }
 
   if (!user.is_active) {
     return sendError(res, 403, 'Account has been deactivated. Please contact support.');
   }
 
-  if (user.isLocked) {
+  // Skip lockout check for Google users — they need to set a password, not brute force
+  if (user.isLocked && !user.google_id) {
     return sendError(
       res,
       429,
@@ -102,13 +109,17 @@ const loginUser = asyncHandler(async (req, res) => {
     );
   }
 
-  // If user has no password set, block password login
+  // If user has no password set, guide them to set one
   if (!user.password) {
-    return sendError(res, 400, 'This account has no password set. Please sign in with Google.');
+    return sendError(res, 400, 'No password set for this account. Please go to Profile → Change Password to set one, or use Google Sign-In.');
   }
 
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
+    // For Google users with old random-hash passwords, don't lock out — suggest setting a new password
+    if (user.google_id) {
+      return sendError(res, 400, 'Password does not match. Since this account was created with Google, please set a new password in Profile → Change Password, or use Google Sign-In.');
+    }
     await user.incLoginAttempts();
     return sendError(res, 401, 'Invalid password. Please try again.');
   }
@@ -130,6 +141,7 @@ const loginUser = asyncHandler(async (req, res) => {
         email: user.email,
         role: user.role,
         avatar: user.avatar,
+        google_id: user.google_id || null,
       },
     },
     'Login successful'
@@ -227,6 +239,7 @@ const googleAuth = asyncHandler(async (req, res) => {
         email: user.email,
         role: user.role,
         avatar: user.avatar,
+        google_id: user.google_id || null,
       },
     },
     'Google authentication successful'
@@ -235,7 +248,7 @@ const googleAuth = asyncHandler(async (req, res) => {
 
 // GET /api/auth/me
 const getMe = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
+  const user = await User.findById(req.user._id).select('+google_id');
   return sendSuccess(res, 200, {
     user: {
       _id: user._id,
@@ -243,6 +256,7 @@ const getMe = asyncHandler(async (req, res) => {
       email: user.email,
       role: user.role,
       avatar: user.avatar,
+      google_id: user.google_id || null,
     },
   });
 });
@@ -250,8 +264,21 @@ const getMe = asyncHandler(async (req, res) => {
 // POST /api/auth/change-password
 const changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = req.body;
-  const user = await User.findById(req.user._id).select('+password');
+  const user = await User.findById(req.user._id).select('+password google_id');
 
+  if (!newPassword || newPassword.length < 8) {
+    return sendError(res, 400, 'New password must be at least 8 characters');
+  }
+
+  // Google users setting their first password — no current password needed
+  if (user.google_id && !user.password) {
+    user.password = newPassword;
+    await user.save();
+    sendPasswordChangeEmail(user.email);
+    return sendSuccess(res, 200, {}, 'Password set successfully. You can now sign in with email and password.');
+  }
+
+  // Regular password change requires current password
   if (!currentPassword) {
     return sendError(res, 400, 'Current password is required');
   }
