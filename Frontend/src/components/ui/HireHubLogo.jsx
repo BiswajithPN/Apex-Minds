@@ -17,11 +17,11 @@ export default function HireHubLogo({
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <div className={`${box} rounded-xl overflow-hidden shadow-lg shrink-0 `}>
+      <div className={`${box} rounded-xl overflow-hidden shrink-0 `}>
         <img
           src="/Hirehub-logo.png"
           alt="HireHub"
-          className={`${icon} object-cover`}
+          className={`${icon} object-contain mix-blend-multiply`}
         />
       </div>
 
