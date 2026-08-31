@@ -31,7 +31,17 @@ export default function Register() {
         isSignUp: true,
       });
       login(data.token, data.user);
-      if (data.user.role === "jobseeker") { navigate("/jobseeker/profile?onboarding=1", { replace: true }); } else { navigate(homePath(data.user.role), { replace: true }); }
+      // Fetch fresh user data to get the authoritative role from the database
+      let userRole = data.user.role;
+      try {
+        const { data: meData } = await api.get('/auth/me');
+        if (meData?.user?.role) {
+          userRole = meData.user.role;
+          const store = useAuthStore.getState();
+          store.setUser(meData.user);
+        }
+      } catch (_) { /* fall back to role from login response */ }
+      if (userRole === "jobseeker") { navigate("/jobseeker/profile?onboarding=1", { replace: true }); } else { navigate(homePath(userRole), { replace: true }); }
     } catch (err) {
       setError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
     } finally {

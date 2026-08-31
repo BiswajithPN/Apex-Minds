@@ -28,7 +28,18 @@ export default function Login() {
         credential: credentialResponse.credential,
       });
       login(data.token, data.user);
-      navigate(homePath(data.user.role), { replace: true });
+      // Fetch fresh user data to get the authoritative role from the database
+      let userRole = data.user.role;
+      try {
+        const { data: meData } = await api.get('/auth/me');
+        if (meData?.user?.role) {
+          userRole = meData.user.role;
+          // Update store with fresh role
+          const store = useAuthStore.getState();
+          store.setUser(meData.user);
+        }
+      } catch (_) { /* fall back to role from login response */ }
+      navigate(homePath(userRole), { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
     } finally {
