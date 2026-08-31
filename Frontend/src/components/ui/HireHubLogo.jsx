@@ -16,8 +16,8 @@ export default function HireHubLogo({
   const { box, text, icon } = sizeMap[size] || sizeMap.md;
 
   return (
-    <div className={`flex items-center gap-2 ml-1 ${className}`}>
-      <div className={`${box} overflow-hidden shrink-0 `}>
+    <div className={`flex items-center gap-1 ml-1 ${className}`}>
+      <div className={`${box} overflow-hidden shrink-0 mt-0.5 `}>
         <img
           src="/Hirehub-logo.png"
           alt="HireHub"
