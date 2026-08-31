@@ -72,7 +72,7 @@ export default function Login() {
         {/* Logo */}
         <div className="relative z-10">
           <div className="flex items-center gap-3">
-            <img src="/Hirehub-logo.png" alt="HireHub" className="w-11 h-11 rounded-xl object-contain mix-blend-multiply" />
+            <img src="/Hirehub-logo.png" alt="HireHub" className="w-16 h-16 object-contain mix-blend-multiply" />
             <span className="text-2xl font-black tracking-tight">
               Hire<span className="text-amber-400">Hub</span>
             </span>
