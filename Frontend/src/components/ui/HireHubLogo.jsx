@@ -17,7 +17,7 @@ export default function HireHubLogo({
 
   return (
     <div className={`flex items-center gap-1 ml-1 ${className}`}>
-      <div className={`${box} overflow-hidden shrink-0 mt-0.5 `}>
+      <div className={`${box} overflow-hidden shrink-0 `}>
         <img
           src="/Hirehub-logo.png"
           alt="HireHub"

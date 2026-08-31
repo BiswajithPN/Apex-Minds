@@ -55,7 +55,7 @@ export default function Login() {
 
       {/* ── HERO PANEL ── */}
       <div className="relative bg-gradient-to-br from-[#022a22] via-[#033d32] to-[#065f46] text-white overflow-hidden
-                      px-6 py-8 sm:px-10 sm:pt-14 sm:pb-10
+                      px-5 py-6 sm:px-10 sm:pt-14 sm:pb-10
                       lg:w-[48%] lg:min-h-screen lg:flex lg:flex-col lg:justify-between lg:px-16 lg:py-12">
 
         {/* Decorative blurs */}
@@ -71,9 +71,9 @@ export default function Login() {
 
         {/* Logo */}
         <div className="relative z-10">
-          <div className="flex items-center gap-1">
-            <img src="/Hirehub-logo.png" alt="HireHub" className="w-16 h-16 object-contain mix-blend-multiply mt-1" />
-            <span className="text-4xl font-black tracking-tight">
+          <div className="flex items-center gap-1.5">
+            <img src="/Hirehub-logo.png" alt="HireHub" className="w-14 h-14 sm:w-16 sm:h-16 object-contain mix-blend-multiply" />
+            <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight">
               Hire<span className="text-amber-400">Hub</span>
             </span>
           </div>
@@ -86,7 +86,7 @@ export default function Login() {
             Bias-Free Recruitment
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-[2.8rem] font-black leading-[1.08] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-[2.8rem] font-black leading-[1.08] tracking-tight">
             <span className="text-white">Smart</span><br />
             <span className="text-white">Recruitment</span><br />
             <span className="text-white">Made Simple</span>
@@ -96,7 +96,7 @@ export default function Login() {
           </p>
 
           {/* Feature pills */}
-          <div className="flex flex-wrap gap-2 mt-8">
+          <div className="flex flex-wrap gap-2 mt-6 sm:mt-8">
             {[
               { icon: <BarChart3 className="w-3.5 h-3.5" />, text: 'Multi-Criteria Scoring' },
               { icon: <Users className="w-3.5 h-3.5" />, text: 'Bias-Free Matching' },
@@ -141,7 +141,7 @@ export default function Login() {
           backgroundSize: '40px 40px'
         }} />
 
-        <div className="w-full max-w-[380px] space-y-8 relative z-10">
+        <div className="w-full max-w-full sm:max-w-[380px] space-y-8 relative z-10">
 
           {/* Heading */}
           <div>
@@ -168,7 +168,7 @@ export default function Login() {
                 size="large"
                 shape="pill"
                 text="signin_with"
-                width="380"
+                width="100%"
               />
             ) : (
               <button
