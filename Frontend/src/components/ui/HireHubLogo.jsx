@@ -8,9 +8,9 @@ export default function HireHubLogo({
   className = '',
 }) {
   const sizeMap = {
-    sm: { box: 'w-12 h-12', icon: 'w-10 h-10', text: 'text-xl' },
-    md: { box: 'w-14 h-14', icon: 'w-11 h-11', text: 'text-2xl' },
-    lg: { box: 'w-16 h-16', icon: 'w-13 h-13', text: 'text-3xl' },
+    sm: { box: 'w-12 h-12', icon: 'w-10 h-10', text: 'text-2xl' },
+    md: { box: 'w-14 h-14', icon: 'w-11 h-11', text: 'text-3xl' },
+    lg: { box: 'w-16 h-16', icon: 'w-13 h-13', text: 'text-4xl' },
   };
 
   const { box, text, icon } = sizeMap[size] || sizeMap.md;
