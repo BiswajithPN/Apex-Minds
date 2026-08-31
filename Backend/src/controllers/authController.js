@@ -248,7 +248,7 @@ const googleAuth = asyncHandler(async (req, res) => {
 
 // GET /api/auth/me
 const getMe = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).select('+google_id');
+  const user = await User.findById(req.user._id);
   return sendSuccess(res, 200, {
     user: {
       _id: user._id,

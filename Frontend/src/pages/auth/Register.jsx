@@ -22,26 +22,34 @@ export default function Register() {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     setLoading(true);
-    localStorage.removeItem("hirehub-auth");
     setError('');
     try {
+      // Clear old session BEFORE authenticating
+      localStorage.removeItem('hirehub-auth');
+
+      // Step 1: Authenticate with backend
       const { data } = await api.post('/auth/google', {
         credential: credentialResponse.credential,
         role,
         isSignUp: true,
       });
-      login(data.token, data.user);
-      // Fetch fresh user data to get the authoritative role from the database
-      let userRole = data.user.role;
+
+      // Step 2: Fetch fresh user data from database (pass token directly)
+      let freshUser = data.user;
       try {
-        const { data: meData } = await api.get('/auth/me');
-        if (meData?.user?.role) {
-          userRole = meData.user.role;
-          const store = useAuthStore.getState();
-          store.setUser(meData.user);
-        }
-      } catch (_) { /* fall back to role from login response */ }
-      if (userRole === "jobseeker") { navigate("/jobseeker/profile?onboarding=1", { replace: true }); } else { navigate(homePath(userRole), { replace: true }); }
+        const { data: meData } = await api.get('/auth/me', {
+          headers: { Authorization: 'Bearer ' + data.token }
+        });
+        if (meData?.user) freshUser = meData.user;
+      } catch (_) {}
+
+      // Step 3: Cache the fresh, authoritative data (single call)
+      login(data.token, freshUser);
+      if (freshUser.role === 'jobseeker') {
+        navigate('/jobseeker/profile?onboarding=1', { replace: true });
+      } else {
+        navigate(homePath(freshUser.role), { replace: true });
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
     } finally {
@@ -215,7 +223,7 @@ export default function Register() {
           <p className="text-center text-sm text-slate-500 pt-2">
             Already have an account?{' '}
             <Link to="/login" className="font-extrabold text-emerald-600 hover:text-emerald-700 transition-colors">
-              Create one
+              Sign in
             </Link>
           </p>
         </div>

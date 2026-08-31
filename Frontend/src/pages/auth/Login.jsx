@@ -21,25 +21,28 @@ export default function Login() {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     setLoading(true);
-    localStorage.removeItem("hirehub-auth");
     setError('');
     try {
+      // Clear old session BEFORE authenticating
+      localStorage.removeItem('hirehub-auth');
+
+      // Step 1: Authenticate with backend
       const { data } = await api.post('/auth/google', {
         credential: credentialResponse.credential,
       });
-      login(data.token, data.user);
-      // Fetch fresh user data to get the authoritative role from the database
-      let userRole = data.user.role;
+
+      // Step 2: Fetch fresh user data from database (pass token directly)
+      let freshUser = data.user;
       try {
-        const { data: meData } = await api.get('/auth/me');
-        if (meData?.user?.role) {
-          userRole = meData.user.role;
-          // Update store with fresh role
-          const store = useAuthStore.getState();
-          store.setUser(meData.user);
-        }
-      } catch (_) { /* fall back to role from login response */ }
-      navigate(homePath(userRole), { replace: true });
+        const { data: meData } = await api.get('/auth/me', {
+          headers: { Authorization: 'Bearer ' + data.token }
+        });
+        if (meData?.user) freshUser = meData.user;
+      } catch (_) {}
+
+      // Step 3: Cache the fresh, authoritative data (single call)
+      login(data.token, freshUser);
+      navigate(homePath(freshUser.role), { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
     } finally {
