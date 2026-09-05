@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
-import { ShieldCheck, Sparkles, BarChart3, Users } from 'lucide-react';
+import { ShieldCheck, Sparkles, BarChart3, Users, LockKeyhole, ShieldAlert, Eye, EyeOff } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import api from '../../api/axiosInstance';
 
@@ -10,6 +10,12 @@ export default function Login() {
   const { login, homePath, isAuthenticated } = useAuthStore();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminPass, setAdminPass] = useState('');
+  const [showAdminPass, setShowAdminPass] = useState(false);
+  const [adminLoading, setAdminLoading] = useState(false);
 
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -45,6 +51,33 @@ export default function Login() {
       setError(err.response?.data?.message || 'Google sign-in failed. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    setAdminLoading(true);
+    setError('');
+    try {
+      localStorage.removeItem('hirehub-auth');
+      const { data } = await api.post('/auth/admin-login', {
+        email: adminEmail,
+        password: adminPassword,
+        adminPass,
+      });
+      let freshUser = data.user;
+      try {
+        const { data: meData } = await api.get('/auth/me', {
+          headers: { Authorization: 'Bearer ' + data.token },
+        });
+        if (meData?.user) freshUser = meData.user;
+      } catch (_) {}
+      login(data.token, freshUser);
+      navigate('/admin/dashboard', { replace: true });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Admin login failed. Check Admin Pass.');
+    } finally {
+      setAdminLoading(false);
     }
   };
 
@@ -195,6 +228,87 @@ export default function Login() {
                 </svg>
                 Sign in with Google
               </button>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div className="relative flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
+            <span className="relative bg-white px-3 text-xs font-bold text-slate-400 tracking-widest">OR</span>
+          </div>
+
+          {/* Admin Login Pass — ONLY on Sign In page to validate Admin Dashboard */}
+          <div className="rounded-2xl border-2 border-slate-200 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setIsAdminMode(!isAdminMode)}
+              className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 hover:bg-slate-100 transition-colors"
+            >
+              <span className="flex items-center gap-2 text-sm font-black text-slate-800">
+                <span className="p-1.5 rounded-lg bg-slate-900 text-white"><ShieldAlert className="w-4 h-4" /></span>
+                Admin Login Pass
+                <span className="text-[10px] font-bold tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">ONLY ON SIGN IN</span>
+              </span>
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full border transition-colors ${isAdminMode ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-200'}`}>
+                {isAdminMode ? 'Hide' : 'Show'}
+              </span>
+            </button>
+
+            {isAdminMode && (
+              <form onSubmit={handleAdminLogin} className="p-4 space-y-3 bg-white border-t border-slate-200 animate-fade-in">
+                <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+                  <LockKeyhole className="w-3.5 h-3.5 text-slate-400" />
+                  Validate admin dashboard with Admin Pass. Not shown on Sign Up.
+                </p>
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Admin Email</label>
+                  <input
+                    type="email"
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
+                    placeholder="admin@hirehub.com"
+                    required={isAdminMode}
+                    className="mt-1 w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 focus:border-slate-900 focus:outline-none text-sm font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Admin Password</label>
+                  <input
+                    type="password"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required={isAdminMode}
+                    className="mt-1 w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 focus:border-slate-900 focus:outline-none text-sm font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                    <LockKeyhole className="w-3 h-3" /> Login Pass (Admin Pass)
+                  </label>
+                  <div className="mt-1 relative">
+                    <input
+                      type={showAdminPass ? 'text' : 'password'}
+                      value={adminPass}
+                      onChange={(e) => setAdminPass(e.target.value)}
+                      placeholder="Enter Admin Pass"
+                      required={isAdminMode}
+                      className="w-full px-3.5 py-2.5 pr-10 rounded-xl border-2 border-amber-200 bg-amber-50/50 focus:border-amber-400 focus:outline-none text-sm font-bold tracking-wide"
+                    />
+                    <button type="button" onClick={() => setShowAdminPass(!showAdminPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700">
+                      {showAdminPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">Hint (dev): <span className="font-mono font-bold text-slate-600">HireHubAdmin@2026</span> or set ADMIN_PASS env</p>
+                </div>
+                <button
+                  type="submit"
+                  disabled={adminLoading}
+                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-black text-white text-sm font-black tracking-wide transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                >
+                  {adminLoading ? 'Validating…' : <><ShieldCheck className="w-4 h-4" /> Validate & Go to Admin Dashboard</>}
+                </button>
+              </form>
             )}
           </div>
 

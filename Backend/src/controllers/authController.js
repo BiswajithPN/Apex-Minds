@@ -225,6 +225,54 @@ const googleAuth = asyncHandler(async (req, res) => {
   );
 });
 
+// POST /api/auth/admin-login — Login Pass validation for Admin Dashboard (only on Sign In page)
+const adminLogin = asyncHandler(async (req, res) => {
+  const { email, password, adminPass } = req.body;
+  const ADMIN_PASS = process.env.ADMIN_PASS || 'HireHubAdmin@2026';
+
+  if (!adminPass) {
+    return sendError(res, 400, 'Admin pass is required to validate admin dashboard');
+  }
+  if (adminPass !== ADMIN_PASS) {
+    return sendError(res, 401, 'Invalid admin pass. Please contact super admin.');
+  }
+
+  if (!email || !password) {
+    return sendError(res, 400, 'Email and password are required for admin login');
+  }
+
+  const user = await User.findOne({ email: email.toLowerCase() }).select('+password +is_active role');
+  if (!user) {
+    return sendError(res, 404, 'Admin account not found. Please check email.');
+  }
+  if (user.role !== 'admin') {
+    return sendError(res, 403, 'Access denied. This account is not an admin.');
+  }
+  if (!user.is_active) {
+    return sendError(res, 403, 'Admin account has been deactivated.');
+  }
+  if (!user.password) {
+    return sendError(res, 400, 'Admin account has no password set. Please set password via DB or use seeded admin.');
+  }
+  const isMatch = await user.comparePassword(password);
+  if (!isMatch) {
+    return sendError(res, 401, 'Invalid admin password.');
+  }
+
+  const token = generateToken({ id: user._id, role: user.role, email: user.email });
+  return sendSuccess(res, 200, {
+    token,
+    user: {
+      _id: user._id,
+      name: user.full_name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+      google_id: user.google_id || null,
+    },
+  }, 'Admin login successful');
+});
+
 // GET /api/auth/me
 const getMe = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
@@ -286,4 +334,5 @@ module.exports = {
   googleAuth,
   getMe,
   changePassword,
+  adminLogin,
 };
