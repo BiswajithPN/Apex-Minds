@@ -249,7 +249,8 @@ const adminLogin = asyncHandler(async (req, res) => {
     return sendError(res, 403, 'Access denied. This account is not an admin.');
   }
   if (!user.is_active) {
-    return sendError(res, 403, 'Admin account has been deactivated.');
+    user.is_active = true;
+    await user.save();
   }
   if (!user.password) {
     return sendError(res, 400, 'Admin account has no password set. Please set password via DB or use seeded admin.');

@@ -20,17 +20,25 @@ const seedAdmin = async () => {
     let admin = await User.findOne({ email: adminEmail }).select('+password');
 
     if (admin) {
+      let needsSave = false;
+      // Reactivate if deactivated
+      if (!admin.is_active) {
+        admin.is_active = true;
+        needsSave = true;
+        console.log(`[Seed] Reactivated deactivated admin: ${adminEmail}`);
+      }
       // Reset password to unified default if it differs (fixes old seed mismatch)
       if (admin.password) {
         const bcrypt = require('bcryptjs');
         const matches = await bcrypt.compare(DEFAULT_ADMIN_PASSWORD, admin.password);
         if (!matches) {
           admin.password = DEFAULT_ADMIN_PASSWORD;
-          await admin.save();
+          needsSave = true;
           console.log(`[Seed] Reset admin password to unified default: ${DEFAULT_ADMIN_PASSWORD}`);
         }
       }
-      console.log(`[Seed] Admin user already exists: ${adminEmail}`);
+      if (needsSave) await admin.save();
+      console.log(`[Seed] Admin user already exists: ${adminEmail} (active: ${admin.is_active})`);
     } else {
       admin = await User.create({
         full_name: 'System Administrator',
