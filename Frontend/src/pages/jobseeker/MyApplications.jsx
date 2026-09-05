@@ -20,7 +20,6 @@ import api from '../../api/axiosInstance';
 
 const statusConfig = {
   pending: { variant: 'warning', label: 'Under Review', bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200' },
-  reviewing: { variant: 'accent', label: 'Under Review', bg: 'bg-accent-50', text: 'text-accent-800', border: 'border-accent-200' },
   shortlisted: { variant: 'success', label: 'Shortlisted', bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' },
   interview: { variant: 'success', label: 'Interview Scheduled', bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' },
   accepted: { variant: 'success', label: 'Accepted', bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' },
@@ -30,7 +29,6 @@ const statusConfig = {
 
 const STATUS_LABELS = {
   pending: 'Under Review',
-  reviewing: 'Under Review',
   shortlisted: 'Shortlisted',
   interview: 'Interview Scheduled',
   accepted: 'Accepted',
@@ -99,13 +97,19 @@ export default function MyApplications() {
         </div>
 
         <div className="flex gap-2">
-          {['all', 'pending', 'reviewing', 'shortlisted', 'interview', 'accepted', 'rejected', 'withdrawn'].map(
+          {['all', 'pending', 'shortlisted', 'interview', 'accepted', 'rejected', 'withdrawn'].map(
             (status) => (
               <Button
                 key={status}
                 size="sm"
                 variant={filterStatus === status ? 'primary' : 'secondary'}
-                className="text-xs py-1.5 px-3"
+                className="text-xs py-1.5 px-3 rounded-full transition-all duration-200 ${
+                  filterStatus === status ? 'shadow-lg shadow-accent-500/20' : 'shadow-sm shadow-slate-200/50'
+                } hover:${
+                  filterStatus === status
+                    ? 'shadow-xl shadow-accent-500/30'
+                    : 'hover:shadow-md hover:shadow-slate-300/50'
+                }"
                 onClick={() => setFilterStatus(status)}
                 aria-pressed={filterStatus === status}
                 aria-label={`Filter by ${STATUS_LABELS[status]} status`}
@@ -148,7 +152,7 @@ export default function MyApplications() {
               <Card
                 key={app._id}
                 padding="lg"
-                className={`animate-fade-in border-2 transition-all shadow-sm hover:shadow-md ${
+                className={`animate-fade-in border-2 transition-all shadow-sm hover:shadow-md hover:shadow-accent-500/20 ${
                   isRejected
                     ? 'border-rose-300 bg-white'
                     : isShortlisted
