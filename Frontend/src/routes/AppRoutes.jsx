@@ -11,7 +11,7 @@ import NotFound from '../pages/NotFound';
 // ── Lazy loaded (only downloaded when the user navigates there) ──
 const ChangePassword   = lazy(() => import('../pages/auth/ChangePassword'));
 
-// Job Seeker
+// Student
 const JSKDashboard     = lazy(() => import('../pages/jobseeker/Dashboard'));
 const ProfileEdit      = lazy(() => import('../pages/jobseeker/ProfileEdit'));
 const ResumeUpload     = lazy(() => import('../pages/jobseeker/ResumeUpload'));
@@ -66,7 +66,7 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Job Seeker */}
+        {/* Student */}
         <Route
           path="/jobseeker"
           element={

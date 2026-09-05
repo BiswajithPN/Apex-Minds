@@ -106,7 +106,7 @@ export default function CompanyProfile() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Company Profile</h1>
           <p className="text-sm text-slate-500">
-            Manage your company information — visible to all job seekers across all job postings
+            Manage your company information — visible to all students across all job postings
           </p>
         </div>
       </div>

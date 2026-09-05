@@ -494,7 +494,7 @@ export default function ResumeScreener() {
           }`}
         >
           <Users className="w-4 h-4" />
-          Compare Applied Job Seekers ({selectedJobData?.applicantCount || 0})
+          Compare Applied Students ({selectedJobData?.applicantCount || 0})
         </button>
 
         <button
@@ -535,7 +535,7 @@ export default function ResumeScreener() {
       </div>
 
       {/* ========================================================================= */}
-      {/* TAB 1: COMPARE APPLIED JOB SEEKERS (AUTO-EXTRACTED FROM POST) */}
+      {/* TAB 1: COMPARE APPLIED STUDENTS (AUTO-EXTRACTED FROM POST) */}
       {/* ========================================================================= */}
       {activeTab === 'job-applicants' && (
         <div className="space-y-6">

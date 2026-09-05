@@ -13,12 +13,12 @@ const roleBadgeVariant = {
 
 // Short label for mobile, full label for desktop
 const roleLabelShort = {
-  jobseeker: 'Job Seeker',
+  jobseeker: 'Student',
   employer: 'Employer',
   admin: 'Admin',
 };
 const roleLabelFull = {
-  jobseeker: 'Job Seeker',
+  jobseeker: 'Student',
   employer: 'Employer / Recruiter',
   admin: 'Administrator',
 };

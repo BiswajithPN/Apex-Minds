@@ -243,7 +243,7 @@ export default function UserManagement() {
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-[10px] sm:text-xs font-black text-emerald-700 uppercase tracking-wider truncate">Job Seekers</p>
+              <p className="text-[10px] sm:text-xs font-black text-emerald-700 uppercase tracking-wider truncate">Students</p>
               <p className="text-2xl sm:text-3xl font-black text-emerald-900 mt-0.5">{jobseekerCount}</p>
             </div>
             <div className="p-2 sm:p-3 rounded-xl bg-emerald-100 text-emerald-700 shrink-0">
@@ -320,7 +320,7 @@ export default function UserManagement() {
               className="w-full py-3 px-4 bg-slate-50 border border-slate-300 rounded-2xl text-sm font-bold text-slate-700 focus:ring-2 focus:ring-accent-500 cursor-pointer"
             >
               <option value="all">Filter: All Roles ({totalCount})</option>
-              <option value="jobseeker">Job Seekers ({jobseekerCount})</option>
+              <option value="jobseeker">Students ({jobseekerCount})</option>
               <option value="employer">Employers ({employerCount})</option>
               <option value="admin">Administrators ({adminCount})</option>
             </select>
@@ -418,7 +418,7 @@ export default function UserManagement() {
                               size="sm"
                               className="font-black text-[11px] uppercase tracking-wider px-3 py-1"
                             >
-                              {u.role === 'admin' ? 'Super Admin' : u.role === 'employer' ? 'Employer' : 'Job Seeker'}
+                              {u.role === 'admin' ? 'Super Admin' : u.role === 'employer' ? 'Employer' : 'Student'}
                             </Badge>
                           </td>
 
@@ -707,13 +707,13 @@ export default function UserManagement() {
                         </div>
                       </div>
 
-                      {/* Job Seeker Deep Profile */}
+                      {/* Student Deep Profile */}
                       {inspectUser.role === 'jobseeker' && (
                         <div className="space-y-4">
                           <div className="p-4 rounded-2xl bg-accent-50/50 border border-accent-200 space-y-3">
                             <h5 className="text-xs font-black text-accent-950 uppercase tracking-wider flex items-center gap-2">
                               <FileText className="w-4 h-4 text-accent-600" />
-                              Job Seeker Profile Details
+                              Student Profile Details
                             </h5>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -911,7 +911,7 @@ export default function UserManagement() {
                           Assign Platform Role
                         </h5>
                         <p className="text-xs text-slate-500 font-medium">
-                          Promote user permissions or reclassify between Job Seeker and Employer.
+                          Promote user permissions or reclassify between Student and Employer.
                         </p>
                         <select
                           value={inspectUser.role}
@@ -919,7 +919,7 @@ export default function UserManagement() {
                           disabled={actionLoading}
                           className="w-full py-2.5 px-3.5 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-accent-500"
                         >
-                          <option value="jobseeker">Job Seeker (Candidate profile & applications)</option>
+                          <option value="jobseeker">Student (Candidate profile & applications)</option>
                           <option value="employer">Employer (Job posting & candidate ranking)</option>
                           <option value="admin">Administrator (Superuser full system access)</option>
                         </select>

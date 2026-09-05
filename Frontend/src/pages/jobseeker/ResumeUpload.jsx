@@ -21,20 +21,17 @@ import api from '../../api/axiosInstance';
 import { getStorageUrl } from '../../utils/url';
 
 function AnalysisResults({ analysis, scoreColor }) {
-  const displayScore = analysis.score || analysis.completeness || 94;
-  const displayMatched = analysis.matchedSkills?.length
+  const displayScore = analysis?.score || analysis?.completeness || 75;
+  const displayMatched = analysis?.matchedSkills?.length
     ? analysis.matchedSkills
-    : analysis.skills || ['React', 'TypeScript', 'Node.js', 'System Design', 'PostgreSQL'];
-  const displayImprove = analysis.skillsToImprove?.length
+    : (analysis?.skills?.length ? analysis.skills : []);
+  const displayImprove = analysis?.skillsToImprove?.length
     ? analysis.skillsToImprove
-    : ['Docker', 'Kubernetes', 'GraphQL'];
-  const displaySuggestions = analysis.suggestions?.length
+    : [];
+  const displaySuggestions = analysis?.suggestions?.length
     ? analysis.suggestions
-    : [
-        'Add more quantifiable achievements in your work history',
-        'Include a brief summary highlighting your core strengths',
-        'Consider adding a link to your GitHub or portfolio',
-      ];
+    : [];
+  const domain = analysis?.domain || '';
 
   return (
     <>
@@ -62,12 +59,19 @@ function AnalysisResults({ analysis, scoreColor }) {
             </div>
           </div>
           <div className="flex-1 text-center sm:text-left">
-            <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2 justify-center sm:justify-start">
-              <TrendingUp className="w-5 h-5 text-accent-500" />
-              Resume Analysis
-            </h3>
+            <div className="flex items-center gap-2.5 justify-center sm:justify-start flex-wrap">
+              <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-accent-500" />
+                Resume Analysis
+              </h3>
+              {domain && (
+                <Badge variant="accent" size="sm" className="font-bold">
+                  {domain}
+                </Badge>
+              )}
+            </div>
             <p className="text-sm text-slate-500 mt-1">
-              Your resume has been analyzed by our AI engine
+              Your resume has been analyzed by our AI engine with real-world job market matching
             </p>
           </div>
         </div>

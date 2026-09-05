@@ -99,9 +99,9 @@ async function autoSeedIfEmpty() {
         is_active: true,
       });
 
-      // 3. Job Seeker
+      // 3. Student
       await User.create({
-        full_name: 'Job Seeker',
+        full_name: 'Student',
         email: 'jobseeker@gmail.com',
         password: 'Password123!',
         role: 'jobseeker',

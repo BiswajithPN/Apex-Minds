@@ -117,24 +117,31 @@ const uploadResume = asyncHandler(async (req, res) => {
       note: 'Image resume uploaded. Text extraction requires a PDF for best analysis.',
     };
   } else {
-    // PDF — extract text with pdf-parse
-    const { parseResume } = require('../services/resumeParserService');
-    const { extractCandidateSkills } = require('../services/multiCriteriaScoringService');
+    // PDF — extract text and perform intelligent domain & market analysis
+    const { parseResume, generateIntelligentAnalysis, extractSkillsFromText } = require('../services/resumeParserService');
     try {
       const result = await parseResume(req.file.buffer);
       resumeText = result.resumeText || '';
-      const detectedSkills = extractCandidateSkills(resumeText);
       analysis = {
-        skills: detectedSkills.length > 0 ? detectedSkills : (result.analysis?.skills || []),
+        score: result.analysis?.score || 80,
+        domain: result.analysis?.domain || 'Software Engineering',
+        skills: result.analysis?.skills || [],
+        matchedSkills: result.analysis?.matchedSkills || result.analysis?.skills || [],
+        skillsToImprove: result.analysis?.skillsToImprove || [],
+        suggestions: result.analysis?.suggestions || [],
         experienceYears: 2,
-        completeness: resumeText.length > 100 ? 85 : 40,
+        completeness: result.analysis?.completeness || 85,
       };
     } catch (e) {
       console.warn('[Resume Parser Warning]', e.message);
       const { extractTextFromBuffer } = require('../services/ocrService');
       resumeText = await extractTextFromBuffer(req.file.buffer, req.file.originalname, req.file.mimetype);
-      const detectedSkills = extractCandidateSkills(resumeText);
-      analysis = { skills: detectedSkills, experienceYears: 1, completeness: 50 };
+      const detectedSkills = extractSkillsFromText(resumeText);
+      const fallbackAnalysis = await generateIntelligentAnalysis(resumeText, detectedSkills);
+      analysis = {
+        ...fallbackAnalysis,
+        experienceYears: 1,
+      };
     }
   }
 
@@ -209,7 +216,7 @@ const uploadCertification = asyncHandler(async (req, res) => {
 
 // GET /api/jobseeker/recommendations
 const getJobRecommendations = asyncHandler(async (req, res) => {
-  const profile = await JobSeekerProfile.findOne({ userId: req.user._id });
+  const profile = await JobSeekerProfile.findOne({ userId: req.user._id }).select('+resume_text');
   const openJobs = await Job.find({ status: 'open', flagged: false }).populate('employerId', 'full_name');
 
   const recommendations = await getRecommendations(profile, openJobs);

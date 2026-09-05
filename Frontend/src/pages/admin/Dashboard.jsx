@@ -64,7 +64,7 @@ export default function AdminDashboard() {
 
   const statCards = [
     { label: 'Total Users', value: stats?.totalUsers || recentUsers.length || 0, icon: Users, color: 'text-emerald-700', bg: 'bg-emerald-100' },
-    { label: 'Job Seekers', value: stats?.jobseekers || recentUsers.filter(u => u.role === 'jobseeker').length || 0, icon: UserCheck, color: 'text-teal-700', bg: 'bg-teal-100' },
+    { label: 'Students', value: stats?.jobseekers || recentUsers.filter(u => u.role === 'jobseeker').length || 0, icon: UserCheck, color: 'text-teal-700', bg: 'bg-teal-100' },
     { label: 'Employers', value: stats?.employers || recentUsers.filter(u => u.role === 'employer').length || 0, icon: Briefcase, color: 'text-accent-700', bg: 'bg-accent-100' },
     { label: 'Active Jobs', value: stats?.activeJobs || stats?.totalJobs || 0, icon: FileCheck, color: 'text-amber-700', bg: 'bg-amber-100' },
   ];

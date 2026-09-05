@@ -80,12 +80,12 @@ export default function JobDetails() {
       {/* Header */}
       <Card padding="lg" className="mb-6">
         <div className="flex items-start gap-4">
-          <div className="w-14 h-14 rounded-2xl gradient-accent flex items-center justify-center shrink-0 shadow-md shadow-accent-500/20">
-            <Briefcase className="w-7 h-7 text-white" />
+          <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 p-2 flex items-center justify-center shrink-0 shadow-sm">
+            <img src="/Hirehub-logo.png" alt="HireHub Logo" className="w-full h-full object-contain mix-blend-multiply" />
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold text-slate-900">{job.title}</h1>
-            <p className="text-sm text-slate-500 mt-1">{job.company?.name || job.employer?.name}</p>
+            <p className="text-sm text-slate-500 mt-1">{job.company?.name || job.employer?.name || job.company || 'Employer'}</p>
             <div className="flex flex-wrap items-center gap-3 mt-3">
               <span className="flex items-center gap-1 text-xs text-slate-500">
                 <MapPin className="w-3.5 h-3.5" />

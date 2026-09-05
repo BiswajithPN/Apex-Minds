@@ -257,15 +257,33 @@ export default function JobSeekerDashboard() {
                 <Link key={match._id || i} to={`/jobseeker/jobs/${match._id}`} className="block">
                   <Card padding="md" className="hover:border-accent-300 transition-all border-2 border-slate-200/80 bg-white group">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl gradient-accent flex items-center justify-center text-white font-black text-base shrink-0 shadow-sm">
-                        #{i + 1}
+                      <div className="relative w-12 h-12 rounded-2xl bg-white border border-slate-200/90 p-1.5 flex items-center justify-center shrink-0 shadow-xs">
+                        <img
+                          src="/Hirehub-logo.png"
+                          alt="HireHub"
+                          className="w-full h-full object-contain mix-blend-multiply"
+                        />
+                        <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-accent-600 text-white text-[10px] font-black flex items-center justify-center ring-2 ring-white">
+                          #{i + 1}
+                        </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-base font-extrabold text-slate-900 group-hover:text-accent-600 transition-colors truncate">
-                          {match.title}
-                        </p>
-                        <p className="text-xs sm:text-sm text-slate-500 font-medium truncate">
-                          {match.company?.name || 'Company'} • {match.location || 'Remote'}
+                        <div className="flex items-center gap-2">
+                          <p className="text-base font-extrabold text-slate-900 group-hover:text-accent-600 transition-colors truncate">
+                            {match.title}
+                          </p>
+                          {match.matchScore && (
+                            <Badge
+                              variant={match.matchScore >= 75 ? 'success' : match.matchScore >= 50 ? 'accent' : 'neutral'}
+                              size="sm"
+                              className="font-black text-[10px] shrink-0"
+                            >
+                              {match.matchScore}% Match
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs sm:text-sm text-slate-500 font-medium truncate mt-0.5">
+                          {match.company || match.employerId?.full_name || match.company?.name || 'Company'} • {match.location || 'Remote'}
                         </p>
                       </div>
                       <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-accent-500 group-hover:translate-x-1 transition-all" />
