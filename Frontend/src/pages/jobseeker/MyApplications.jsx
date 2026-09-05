@@ -3,29 +3,20 @@ import { Link } from 'react-router-dom';
 import {
   ClipboardList,
   Calendar,
-  Video,
-  Phone,
-  MapPin,
-  ExternalLink,
   XCircle,
   BarChart3,
   Sparkles,
   CheckCircle2,
   AlertTriangle,
-  Target,
-  Zap,
-  Info,
-  Award,
-  ChevronRight,
   TrendingUp,
-  BookOpen,
-  ArrowRight
+  ArrowRight,
 } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
 import Button from '../../components/ui/Button';
 import { CardSkeleton } from '../../components/ui/Spinner';
 import api from '../../api/axiosInstance';
+
 
 const statusConfig = {
   pending: { variant: 'warning', label: 'Under Review', bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200' },
@@ -37,12 +28,20 @@ const statusConfig = {
   withdrawn: { variant: 'neutral', label: 'Withdrawn', bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200' },
 };
 
+const STATUS_LABELS = {
+  pending: 'Under Review',
+  reviewing: 'Under Review',
+  shortlisted: 'Shortlisted',
+  interview: 'Interview Scheduled',
+  accepted: 'Accepted',
+  rejected: 'Not Shortlisted',
+  withdrawn: 'Withdrawn',
+};
+
 export default function MyApplications() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // In-Page Expanded Feedback State (No Popups)
-  const [expandedFeedbackAppId, setExpandedFeedbackAppId] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all');
 
   useEffect(() => {
     loadApplications();
@@ -74,33 +73,53 @@ export default function MyApplications() {
 
   const canWithdraw = (status) => !['shortlisted', 'interview', 'accepted', 'withdrawn', 'rejected'].includes(status);
 
+  const filteredApplications = applications.filter(
+    (app) => filterStatus === 'all' || app.status === filterStatus
+  );
+
   if (loading) {
     return (
       <div className="space-y-6 animate-fade-in max-w-5xl mx-auto pb-16">
-        {[1, 2, 3].map((i) => <CardSkeleton key={i} lines={3} />)}
+        {[1, 2, 3, 4, 5].map((i) => <CardSkeleton key={i} lines={3} className="h-40" />)}
       </div>
     );
   }
 
   return (
     <div className="animate-fade-in max-w-5xl mx-auto pb-16 font-sans text-slate-800">
-      {/* Header Banner */}
+      {/* Header with Filter Tabs */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">My Applications & AI Feedback</h1>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+            My Applications & AI Feedback
+          </h1>
           <p className="text-sm text-slate-500 mt-1 font-medium">
             Track application statuses, multi-criteria match scores, and personalized constructive AI growth advice
           </p>
         </div>
 
-        <Link to="/jobseeker/jobs">
-          <Button size="md" className="font-bold shadow-md shadow-accent-500/20 text-sm">
-            Browse More Jobs
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          {['all', 'pending', 'reviewing', 'shortlisted', 'interview', 'accepted', 'rejected', 'withdrawn'].map(
+            (status) => (
+              <Button
+                key={status}
+                size="sm"
+                variant={filterStatus === status ? 'primary' : 'secondary'}
+                className="text-xs py-1.5 px-3"
+                onClick={() => setFilterStatus(status)}
+                aria-pressed={filterStatus === status}
+                aria-label={`Filter by ${STATUS_LABELS[status]} status`}
+              >
+                {status === 'all'
+                  ? 'All'
+                  : STATUS_LABELS[status]}
+              </Button>
+            )
+          )}
+        </div>
       </div>
 
-      {applications.length === 0 ? (
+      {filteredApplications.length === 0 ? (
         <Card padding="lg" className="text-center py-16">
           <ClipboardList className="w-16 h-16 text-slate-300 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-slate-800">No applications submitted yet</h3>
@@ -113,11 +132,12 @@ export default function MyApplications() {
         </Card>
       ) : (
         <div className="space-y-6">
-          {applications.map((app) => {
+          {filteredApplications.map((app) => {
             const status = statusConfig[app.status] || statusConfig.pending;
             const isRejected = app.status === 'rejected';
             const isShortlisted = app.status === 'shortlisted' || app.status === 'interview';
-            const isExpanded = expandedFeedbackAppId === app._id || isRejected;
+            const wasPreviouslyExpanded = filterStatus === 'rejected'; // Always expanded when filtering rejected
+            const shouldExpand = isRejected || wasPreviouslyExpanded;
 
             const score = (app.matchScore && app.matchScore > 10)
               ? app.matchScore
@@ -164,12 +184,15 @@ export default function MyApplications() {
 
                   {/* Multi-Criteria Match Score Bar */}
                   <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-3">
-                    <div className="flex items-center justify-between text-base font-extrabold text-slate-800">
+                    <div className="flex items-center justify-between">
                       <span className="flex items-center gap-2.5">
                         <Sparkles className="w-5 h-5 text-accent-500" />
                         Multi-Criteria AI Match Score
                       </span>
                       <span className="text-2xl font-black text-slate-900">{score}%</span>
+                      <span className="ml-2 text-xs text-accent-500 cursor-help" title={`${score}% match score`}>
+                        ?
+                      </span>
                     </div>
 
                     <div className="w-full bg-slate-200 h-3.5 rounded-full overflow-hidden">
@@ -180,22 +203,51 @@ export default function MyApplications() {
                         style={{ width: `${score}%` }}
                       />
                     </div>
+
+                    <div className="text-xs text-slate-500">
+                      <span className="font-bold text-slate-800">Core strengths:</span>
+                      {explanation?.strengths?.map((st, idx) => (
+                        <span key={idx} className="mr-2 inline-block">
+                          ✓ {st}
+                        </span>
+                      ))}
+                    </div>
                   </div>
 
-                  {/* REJECTION FEEDBACK & WHAT TO DO NEXT (IN-PAGE FULL VIEW) */}
+                  {/* REJECTION FEEDBACK SECTION (Collapsible) */}
                   {isRejected && explanation && (
-                    <div className="p-5 bg-rose-50/70 border-2 border-rose-200 rounded-2xl space-y-4 animate-fade-in">
-                      <div className="flex items-center gap-2 text-rose-950 font-black text-base border-b border-rose-200 pb-3">
-                        <AlertTriangle className="w-5 h-5 text-rose-600" />
-                        Why Your Application Was Not Shortlisted
-                      </div>
+                    <details
+                      open={shouldExpand}
+                      className="w-full"
+                      style={{ borderRadius: 'xl', overflow: 'hidden' }}
+                    >
+                      <summary
+                        className="flex items-center justify-between py-3 px-4 rounded-xl border-b border-rose-200 background:rgba(251, 220, 225, 0.5) backdrop-blur-sm cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="w-5 h-5 text-rose-600" />
+                          <span className="font-black text-base text-rose-900 uppercase tracking-wider">
+                            Why Your Application Was Not Shortlisted
+                          </span>
+                        </div>
+                        <svg
+                          className="w-5 h-5 text-rose-400 rotate-180 transition-transform duration-300"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
+                          <path d="M9 5l7 7 2-6H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h2v2h12v-2h2v-2h-2V7z" />
+                        </svg>
+                      </summary>
 
                       {/* Primary Reasons */}
-                      <div className="space-y-2">
+                      <div className="p-4 space-y-3">
                         <p className="text-xs font-bold text-rose-900 uppercase tracking-wider">Evaluation Factors & Gaps:</p>
                         <ul className="space-y-2">
                           {explanation.reasons?.map((reason, rIdx) => (
-                            <li key={rIdx} className="text-sm text-slate-800 bg-white p-3 rounded-xl border border-rose-200 font-medium flex items-start gap-2.5 shadow-2xs">
+                            <li
+                              key={rIdx}
+                              className="text-sm text-slate-800 bg-white p-3 rounded-xl border border-rose-200 font-medium flex items-start gap-2.5 shadow-2xs"
+                            >
                               <span className="text-rose-500 font-black text-base leading-none mt-0.5">•</span>
                               <span>{reason}</span>
                             </li>
@@ -203,11 +255,11 @@ export default function MyApplications() {
                         </ul>
                       </div>
 
-                      {/* WHAT SHOULD THE CANDIDATE DO NEXT? (AI GROWTH PLAN) */}
-                      <div className="p-4 bg-white rounded-xl border border-rose-200 shadow-2xs space-y-2">
+                      {/* AI Growth Plan */}
+                      <div className="p-4 bg-white rounded-xl border border-rose-200 space-y-2">
                         <h4 className="text-sm font-black text-accent-700 uppercase tracking-wider flex items-center gap-2">
                           <TrendingUp className="w-4 h-4 text-accent-600" />
-                          What Should You Do Next? (AI Remediation Guidance)
+                          <span className="hidden sm:inline">What Should You Do Next? (AI Remediation Guidance)</span>
                         </h4>
                         <p className="text-sm text-slate-700 leading-relaxed font-medium">
                           {explanation.constructiveAdvice || 'Focus on building verified production projects and expanding practical tenure in core technical requirements.'}
@@ -216,55 +268,72 @@ export default function MyApplications() {
 
                       {/* Candidate Strong Points */}
                       {explanation.strengths?.length > 0 && (
-                        <div className="space-y-1.5 pt-1">
+                        <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1.5">
                           <p className="text-xs font-bold text-emerald-950 uppercase tracking-wider">Your Strong Qualified Areas:</p>
                           <div className="flex flex-wrap gap-1.5">
                             {explanation.strengths.map((st, sIdx) => (
-                              <span key={sIdx} className="px-2.5 py-1 bg-emerald-100/80 text-emerald-900 font-bold text-xs rounded-lg border border-emerald-300">
+                              <span
+                                key={sIdx}
+                                className="px-2.5 py-1 bg-emerald-100/80 text-emerald-900 font-bold text-xs rounded-lg border border-emerald-300"
+                              >
                                 ✓ {st}
                               </span>
                             ))}
                           </div>
                         </div>
                       )}
-                    </div>
+                    </details>
                   )}
 
                   {/* INTERVIEW SCHEDULED CARD */}
                   {app.status === 'interview' && app.interview && (
-                    <div className="p-5 bg-emerald-50 border-2 border-emerald-200 rounded-2xl space-y-3 animate-fade-in">
-                      <h4 className="text-base font-black text-emerald-950 flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-emerald-600" />
-                        Interview Scheduled by Recruiter!
-                      </h4>
+                    <Card padding="lg" className="bg-emerald-50 p-6 rounded-2xl border border-emerald-200 space-y-4 animate-fade-in">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-base font-black text-emerald-950 flex items-center gap-2">
+                          <Calendar className="w-5 h-5 text-emerald-600" />
+                          Interview Scheduled by Recruiter!
+                        </h4>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-xs py-1 px-2"
+                        >
+                          View Full AI Evaluation Report
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm text-slate-700">
-                        <div className="p-3 bg-white rounded-xl border border-emerald-200">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
                           <p className="text-xs font-bold text-slate-400 uppercase">Date & Time</p>
                           <p className="font-extrabold text-slate-900 mt-0.5">
                             {new Date(app.interview.date).toLocaleDateString()} at {app.interview.time}
                           </p>
                         </div>
-                        <div className="p-3 bg-white rounded-xl border border-emerald-200">
+                        <div>
                           <p className="text-xs font-bold text-slate-400 uppercase">Medium</p>
                           <p className="font-extrabold text-slate-900 mt-0.5 capitalize">{app.interview.type}</p>
                         </div>
-                        <div className="p-3 bg-white rounded-xl border border-emerald-200">
+                        <div>
                           <p className="text-xs font-bold text-slate-400 uppercase">Location / Link</p>
                           <p className="font-extrabold text-accent-600 mt-0.5 truncate">
                             {app.interview.location || 'Pending link'}
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </Card>
                   )}
 
-                  {/* ACTION TOOLBAR (IN-PAGE) */}
+                  {/* ACTION TOOLBAR */}
                   <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
                     <div className="flex flex-wrap items-center gap-3">
                       {/* Full-Page Detailed Report Link */}
                       <Link to={`/jobseeker/applications/${app._id}/analysis`}>
-                        <Button size="sm" className="font-bold text-sm shadow-xs flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="font-bold text-sm shadow-xs flex items-center gap-2"
+                        >
                           <BarChart3 className="w-4 h-4" />
                           View Full AI Evaluation Report
                           <ArrowRight className="w-3.5 h-3.5" />
@@ -277,6 +346,7 @@ export default function MyApplications() {
                       <button
                         onClick={() => handleWithdraw(app._id)}
                         className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1.5 py-1.5 px-3 rounded-lg hover:bg-rose-50 transition-colors"
+                        aria-label="Withdraw application"
                       >
                         <XCircle className="w-4 h-4" />
                         Withdraw Application
