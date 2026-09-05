@@ -238,76 +238,97 @@ export default function Login() {
           </div>
 
           {/* Admin Login Pass — ONLY on Sign In page to validate Admin Dashboard */}
-          <div className="rounded-2xl border-2 border-slate-200 overflow-hidden">
+          <div className={`rounded-2xl overflow-hidden border-2 transition-all duration-300 ${isAdminMode ? 'border-slate-900 shadow-xl shadow-slate-900/10' : 'border-slate-200 hover:border-slate-300 hover:shadow-md'}`}>
             <button
               type="button"
               onClick={() => setIsAdminMode(!isAdminMode)}
-              className="w-full flex items-center justify-between px-4 py-3.5 bg-slate-50 hover:bg-slate-100 transition-colors"
+              className={`w-full flex items-center justify-between px-5 py-4 transition-all duration-300 ${isAdminMode ? 'bg-slate-900' : 'bg-white hover:bg-slate-50'}`}
             >
-              <span className="flex items-center gap-2 text-sm font-black text-slate-800">
-                <span className="p-1.5 rounded-lg bg-slate-900 text-white"><ShieldAlert className="w-4 h-4" /></span>
-                Admin Login Pass
-                <span className="text-[10px] font-bold tracking-widest text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">ONLY ON SIGN IN</span>
+              <span className="flex items-center gap-3">
+                <span className={`p-2 rounded-xl transition-colors duration-300 ${isAdminMode ? 'bg-white text-slate-900' : 'bg-slate-900 text-white'}`}>
+                  <ShieldAlert className="w-4 h-4" />
+                </span>
+                <span className="text-left">
+                  <span className={`block text-sm font-black tracking-tight ${isAdminMode ? 'text-white' : 'text-slate-900'}`}>Admin Access</span>
+                  <span className={`block text-[11px] font-semibold ${isAdminMode ? 'text-slate-400' : 'text-slate-500'}`}>Login Pass required • Sign In only</span>
+                </span>
               </span>
-              <span className={`text-xs font-bold px-2.5 py-1 rounded-full border transition-colors ${isAdminMode ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-200'}`}>
-                {isAdminMode ? 'Hide' : 'Show'}
+              <span className={`flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-full border-2 transition-all duration-300 ${isAdminMode ? 'bg-white text-slate-900 border-white' : 'bg-slate-900 text-white border-slate-900 group-hover:bg-black'}`}>
+                {isAdminMode ? 'Close' : 'Open'}
+                <span className={`transition-transform duration-300 ${isAdminMode ? 'rotate-180' : ''}`}>⌄</span>
               </span>
             </button>
 
             {isAdminMode && (
-              <form onSubmit={handleAdminLogin} className="p-4 space-y-3 bg-white border-t border-slate-200 animate-fade-in">
-                <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5">
-                  <LockKeyhole className="w-3.5 h-3.5 text-slate-400" />
-                  Validate admin dashboard with Admin Pass. Not shown on Sign Up.
-                </p>
-                <div>
-                  <label className="text-xs font-bold text-slate-700">Admin Email</label>
-                  <input
-                    type="email"
-                    value={adminEmail}
-                    onChange={(e) => setAdminEmail(e.target.value)}
-                    placeholder="admin@hirehub.com"
-                    required={isAdminMode}
-                    className="mt-1 w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 focus:border-slate-900 focus:outline-none text-sm font-medium"
-                  />
+              <form onSubmit={handleAdminLogin} className="bg-gradient-to-b from-slate-50 to-white p-5 space-y-4 border-t border-slate-200 animate-fade-in">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200">
+                  <LockKeyhole className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <p className="text-xs font-semibold text-amber-800 leading-tight">Secure admin validation. This panel never appears on Sign Up.</p>
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-700">Admin Password</label>
-                  <input
-                    type="password"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required={isAdminMode}
-                    className="mt-1 w-full px-3.5 py-2.5 rounded-xl border-2 border-slate-200 focus:border-slate-900 focus:outline-none text-sm font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                    <LockKeyhole className="w-3 h-3" /> Login Pass (Admin Pass)
-                  </label>
-                  <div className="mt-1 relative">
-                    <input
-                      type={showAdminPass ? 'text' : 'password'}
-                      value={adminPass}
-                      onChange={(e) => setAdminPass(e.target.value)}
-                      placeholder="Enter Admin Pass"
-                      required={isAdminMode}
-                      className="w-full px-3.5 py-2.5 pr-10 rounded-xl border-2 border-amber-200 bg-amber-50/50 focus:border-amber-400 focus:outline-none text-sm font-bold tracking-wide"
-                    />
-                    <button type="button" onClick={() => setShowAdminPass(!showAdminPass)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700">
-                      {showAdminPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
+
+                <div className="space-y-3.5">
+                  <div>
+                    <label className="text-xs font-black tracking-wide text-slate-700 uppercase">Admin Email</label>
+                    <div className="mt-1.5 relative group">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors">✉</span>
+                      <input
+                        type="email"
+                        value={adminEmail}
+                        onChange={(e) => setAdminEmail(e.target.value)}
+                        placeholder="admin@hirehub.com"
+                        required={isAdminMode}
+                        className="w-full pl-10 pr-3.5 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-900/5 text-sm font-medium placeholder:text-slate-400 transition-all"
+                      />
+                    </div>
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1">Hint (dev): <span className="font-mono font-bold text-slate-600">HireHubAdmin@2026</span> or set ADMIN_PASS env</p>
+
+                  <div>
+                    <label className="text-xs font-black tracking-wide text-slate-700 uppercase">Password</label>
+                    <div className="mt-1.5 relative group">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors"><LockKeyhole className="w-4 h-4" /></span>
+                      <input
+                        type="password"
+                        value={adminPassword}
+                        onChange={(e) => setAdminPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required={isAdminMode}
+                        className="w-full pl-10 pr-3.5 py-3 rounded-xl border-2 border-slate-200 bg-white focus:border-slate-900 focus:outline-none focus:ring-4 focus:ring-slate-900/5 text-sm font-medium placeholder:text-slate-400 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-black tracking-wide text-slate-700 uppercase flex items-center gap-1.5">
+                      <span className="p-1 rounded bg-amber-500 text-white"><LockKeyhole className="w-3 h-3" /></span> Login Pass
+                    </label>
+                    <div className="mt-1.5 relative group">
+                      <input
+                        type={showAdminPass ? 'text' : 'password'}
+                        value={adminPass}
+                        onChange={(e) => setAdminPass(e.target.value)}
+                        placeholder="Enter Login Pass"
+                        required={isAdminMode}
+                        className="w-full pl-3.5 pr-11 py-3 rounded-xl border-2 border-slate-900 bg-white focus:border-black focus:outline-none focus:ring-4 focus:ring-slate-900/10 text-sm font-bold tracking-wide placeholder:font-medium placeholder:tracking-normal transition-all"
+                      />
+                      <button type="button" onClick={() => setShowAdminPass(!showAdminPass)} className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-colors">
+                        {showAdminPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
                 </div>
+
                 <button
                   type="submit"
                   disabled={adminLoading}
-                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-black text-white text-sm font-black tracking-wide transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-slate-900 via-slate-800 to-black hover:from-black hover:to-slate-900 text-white text-sm font-black tracking-wide transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20 hover:shadow-xl hover:shadow-slate-900/30 hover:-translate-y-0.5 active:translate-y-0"
                 >
-                  {adminLoading ? 'Validating…' : <><ShieldCheck className="w-4 h-4" /> Validate & Go to Admin Dashboard</>}
+                  {adminLoading ? (
+                    <span className="flex items-center gap-2"><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Validating…</span>
+                  ) : (
+                    <><ShieldCheck className="w-4 h-4" /> Unlock Admin Dashboard</>
+                  )}
                 </button>
+                <p className="text-center text-[11px] font-medium text-slate-400">Protected • Encrypted • Audit logged</p>
               </form>
             )}
           </div>
