@@ -61,14 +61,32 @@ const connectDB = async () => {
         await autoSeedIfEmpty();
         return fallbackConn;
       } catch (fallbackError) {
-        console.error(`[MongoDB Fatal Error] Fallback connection failed: ${fallbackError.message}`);
+        // ERR-04: Both connections failed — throw so the server fails fast
+        // instead of silently accepting requests with no database.
+        const fatal = new Error(
+          `[MongoDB Fatal] Both primary and fallback connections failed.\n` +
+          `  Primary error:  ${error.message}\n` +
+          `  Fallback error: ${fallbackError.message}`
+        );
+        console.error(fatal.message);
+        throw fatal;
       }
     }
+
+    // Primary failed and there was no different fallback — still throw
+    const fatal = new Error(`[MongoDB Fatal] Primary connection failed: ${error.message}`);
+    console.error(fatal.message);
+    throw fatal;
   }
 };
 
 /**
- * Auto-seed basic sample accounts and jobs if the database is brand new/empty
+ * Auto-seed basic sample accounts and jobs if the database is brand new/empty.
+ *
+ * SEC-08: The seed passwords below are visible in source code.
+ * These are intended ONLY for a fresh local/demo database.
+ * Change them immediately via the app's Change Password feature or
+ * directly in MongoDB Atlas before any non-demo deployment.
  */
 async function autoSeedIfEmpty() {
   try {

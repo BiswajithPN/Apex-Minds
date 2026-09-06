@@ -37,6 +37,7 @@ const getProfile = asyncHandler(async (req, res) => {
     interviewCount,
     profileScore,
     aiMatchCount: Math.max(1, Math.round(appCount * 1.5)),
+    avatarUrl: profile.avatar || req.user.avatar || '',
   });
 });
 
@@ -401,10 +402,36 @@ const applyForJob = asyncHandler(async (req, res) => {
   return sendSuccess(res, 201, { application, analysis: savedAnalysis }, 'Application submitted successfully');
 });
 
+// POST /api/jobseeker/avatar/upload
+const uploadAvatar = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    return sendError(res, 400, 'Please upload an image file (JPEG, PNG, or WEBP)');
+  }
+
+  const path = require('path');
+  const ext = path.extname(req.file.originalname).toLowerCase();
+  const filename = `avatar_${req.user._id}_${Date.now()}${ext || '.jpg'}`;
+
+  const avatarUrl = await saveFile(req.file.buffer, filename, 'hirehub/avatars');
+
+  // Save to profile
+  await JobSeekerProfile.findOneAndUpdate(
+    { userId: req.user._id },
+    { avatar: avatarUrl },
+    { upsert: true, new: true }
+  );
+
+  // Also update the User model avatar field so Navbar shows the new image
+  await User.findByIdAndUpdate(req.user._id, { avatar: avatarUrl });
+
+  return sendSuccess(res, 200, { avatarUrl }, 'Avatar uploaded successfully');
+});
+
 module.exports = {
   getProfile,
   updateProfile,
   uploadResume,
+  uploadAvatar,
   uploadCertification,
   getResumeAnalysis,
   getJobRecommendations,

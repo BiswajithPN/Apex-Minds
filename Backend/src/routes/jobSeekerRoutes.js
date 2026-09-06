@@ -4,6 +4,7 @@ const {
   getProfile,
   updateProfile,
   uploadResume,
+  uploadAvatar,
   uploadCertification,
   getResumeAnalysis,
   getJobRecommendations,
@@ -20,6 +21,9 @@ router.use(protect);
 // Profile routes
 router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
+
+// Avatar upload
+router.post('/avatar/upload', upload.single('avatar'), uploadAvatar);
 
 // Resume upload & analysis routes (stored in Cloudinary / local storage)
 router.post('/upload', upload.single('resume'), uploadResume);

@@ -16,6 +16,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const screenerRoutes = require('./routes/screenerRoutes');
 const analysisRoutes = require('./routes/analysisRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 const { getAdminStats, getAnalyticsTrends } = require('./controllers/adminController');
 const { getProfile, updateProfile } = require('./controllers/jobSeekerController');
 const protect = require('./middleware/authMiddleware');
@@ -36,7 +37,7 @@ if (env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-// CORS Policy
+// SEC-04: CORS Policy — only allow explicitly listed origins
 const allowedOrigins = [
   env.FRONTEND_ORIGIN,
   'https://hire-hub-lilac-eight.vercel.app',
@@ -46,15 +47,21 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV === 'development') {
+      // Allow same-origin / server-to-server (no Origin header) and known origins
+      if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(null, true); // Allow for hackathon demo
+        callback(new Error(`CORS: origin '${origin}' is not allowed`));
       }
     },
     credentials: true,
   })
 );
+
+// SEC-07: Body Parsing BEFORE rate limiters so limiters can inspect the parsed body
+// if needed in future (e.g. body-based key generators), and to avoid large-body bypass.
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate Limiting
 const authLimiter = rateLimit({
@@ -81,10 +88,6 @@ app.use('/api/screener', matchLimiter);
 app.use('/api/analysis', matchLimiter);
 app.use('/api', apiLimiter);
 
-// Body Parsing
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
 // ── Cache-Control headers for GET API responses ───────────────────────────────
 app.use((req, res, next) => {
   if (req.method === 'GET') {
@@ -106,6 +109,18 @@ app.get('/api/health', (req, res) => {
   res.json({ success: true, message: 'HireHub API is running smoothly', timestamp: new Date() });
 });
 
+// ── Static /uploads fallback (works in local dev; Cloudinary handles production) ──
+const path = require('path');
+app.use(
+  '/uploads',
+  express.static(path.join(__dirname, '../uploads'), {
+    maxAge: '1d',
+    setHeaders: (res) => {
+      res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    },
+  })
+);
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/jobseeker', jobSeekerRoutes);
@@ -115,7 +130,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/screener', screenerRoutes);
 app.use('/api/analysis', analysisRoutes);
-app.use('/api/notifications', analysisRoutes);
+// MISMATCH-05 fix: /api/notifications now has its own dedicated router
+app.use('/api/notifications', notificationRoutes);
 
 // Direct Screener & Legacy Project 1 Route Compatibility
 app.use('/api/screen-resume', screenerRoutes);

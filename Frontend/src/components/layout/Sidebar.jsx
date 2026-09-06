@@ -32,6 +32,7 @@ const navConfig = {
     { to: '/employer/company', icon: Building2, label: 'Company Profile' },
     { to: '/employer/post-job', icon: PlusCircle, label: 'Post Job' },
     { to: '/employer/jobs', icon: Briefcase, label: 'Manage Jobs' },
+    { to: '/employer/applicants', icon: Users, label: 'Applicants' },
   ],
   admin: [
     { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },

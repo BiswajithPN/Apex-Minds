@@ -8,6 +8,7 @@ const {
   updateJob,
   deleteJob,
   getApplicantsForJob,
+  getAllApplicants,
   updateApplicationStatus,
   scheduleInterview,
   getCandidateProfile,
@@ -30,6 +31,8 @@ router.post('/jobs', createJob);
 router.put('/jobs/:id', validateObjectId('id'), updateJob);
 router.delete('/jobs/:id', validateObjectId('id'), deleteJob);
 router.get('/jobs/:id/applicants', validateObjectId('id'), getApplicantsForJob);
+// All applicants across all employer jobs
+router.get('/applicants', getAllApplicants);
 router.patch('/applications/:id/status', validateObjectId('id'), updateApplicationStatus);
 router.post('/applications/:id/interview', validateObjectId('id'), scheduleInterview);
 router.patch('/applications/:id/interview', validateObjectId('id'), scheduleInterview);

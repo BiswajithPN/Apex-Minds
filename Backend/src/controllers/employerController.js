@@ -357,6 +357,69 @@ const getEmployerStats = asyncHandler(async (req, res) => {
   });
 });
 
+// GET /api/employer/applicants  — all applicants across all employer's jobs
+const getAllApplicants = asyncHandler(async (req, res) => {
+  // 1. Find all jobs owned by this employer
+  const jobs = await Job.find({ employerId: req.user._id }).select('_id title status');
+  if (!jobs.length) return sendSuccess(res, 200, { applicants: [], total: 0 });
+
+  const jobMap = Object.fromEntries(jobs.map((j) => [String(j._id), j]));
+  const jobIds = jobs.map((j) => j._id);
+
+  // 2. Optional filters from query params
+  const { status, jobId, search } = req.query;
+  const filter = { jobId: { $in: jobIds } };
+  if (status && status !== 'all') filter.status = status;
+  if (jobId && jobIds.some((id) => String(id) === jobId)) filter.jobId = jobId;
+
+  // 3. Fetch applications
+  const applications = await Application.find(filter)
+    .populate('jobSeekerId', 'full_name email avatar')
+    .sort({ createdAt: -1 });
+
+  // 4. Format
+  let formatted = await Promise.all(
+    applications.map(async (app) => {
+      let resumeUrl = app.resume_url;
+      if (!resumeUrl && app.jobSeekerId?._id) {
+        const prof = await JobSeekerProfile.findOne({ userId: app.jobSeekerId._id }).select('resume_url');
+        resumeUrl = prof?.resume_url || '';
+      }
+      return {
+        _id: app._id,
+        applicant: {
+          _id: app.jobSeekerId?._id,
+          name: app.jobSeekerId?.full_name || 'Unknown',
+          email: app.jobSeekerId?.email || '',
+          avatar: app.jobSeekerId?.avatar || '',
+          resumeUrl,
+        },
+        job: {
+          _id: app.jobId,
+          title: jobMap[String(app.jobId)]?.title || 'Unknown Job',
+          status: jobMap[String(app.jobId)]?.status || 'unknown',
+        },
+        status: app.status,
+        matchScore: app.match_score ?? null,
+        appliedAt: app.createdAt,
+      };
+    })
+  );
+
+  // 5. Client-side search filter (name / email / job title)
+  if (search) {
+    const q = search.toLowerCase();
+    formatted = formatted.filter(
+      (a) =>
+        a.applicant.name.toLowerCase().includes(q) ||
+        a.applicant.email.toLowerCase().includes(q) ||
+        a.job.title.toLowerCase().includes(q)
+    );
+  }
+
+  return sendSuccess(res, 200, { applicants: formatted, total: formatted.length });
+});
+
 module.exports = {
   getCompanyProfile,
   updateCompanyProfile,
@@ -365,6 +428,7 @@ module.exports = {
   updateJob,
   deleteJob,
   getApplicantsForJob,
+  getAllApplicants,
   updateApplicationStatus,
   scheduleInterview,
   getCandidateProfile,

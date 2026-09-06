@@ -1,11 +1,25 @@
 const path = require('path');
+
+// Load the single authoritative .env — Backend/.env takes precedence over workspace root
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
-require('dotenv').config({ path: path.join(__dirname, '../../../.env') });
-require('dotenv').config();
+// Fallback: if running from workspace root (e.g. `node Backend/server.js`)
+if (!process.env.JWT_SECRET) {
+  require('dotenv').config({ path: path.join(__dirname, '../../../.env') });
+}
+// Last resort: CWD .env
+if (!process.env.JWT_SECRET) {
+  require('dotenv').config();
+}
+
+// SEC-01: JWT_SECRET is required — never fall back to a hardcoded string
+if (!process.env.JWT_SECRET) {
+  console.error('[FATAL] JWT_SECRET environment variable is not set. Server cannot start securely.');
+  process.exit(1);
+}
 
 const env = {
   MONGO_URI: process.env.MONGO_URI || 'mongodb://localhost:27017/hirehub',
-  JWT_SECRET: process.env.JWT_SECRET || 'fallback-super-secret-jwt-key-32-chars-long',
+  JWT_SECRET: process.env.JWT_SECRET,
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
   PORT: process.env.PORT || 8000,
   NODE_ENV: process.env.NODE_ENV || 'development',

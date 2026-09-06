@@ -15,6 +15,7 @@ const useAuthStore = create(
         set({
           token,
           user: userData,
+          // EDGE-06: always use server-provided role as source of truth
           role: userData.role || decoded.role,
         });
       },
@@ -25,14 +26,51 @@ const useAuthStore = create(
       },
 
       setUser: (user) => {
+        // EDGE-06: update role whenever user data is refreshed from the server
         set({ user, role: user.role });
+      },
+
+      /**
+       * EDGE-05: Validate the session server-side by calling /auth/me.
+       * Called on app load (see main.jsx) to catch deactivated / deleted accounts
+       * and stale roles that local-only token decoding cannot detect.
+       * Returns the fresh user object, or null if the session is invalid.
+       */
+      validateSession: async () => {
+        const { token, logout } = get();
+        if (!token) return null;
+
+        // Quick client-side expiry check before making a network call
+        try {
+          const decoded = jwtDecode(token);
+          if (decoded.exp * 1000 <= Date.now()) {
+            logout();
+            return null;
+          }
+        } catch {
+          logout();
+          return null;
+        }
+
+        try {
+          const { data } = await api.get('/auth/me');
+          const freshUser = data.user;
+          // EDGE-06: sync role from server so stale persisted role is corrected
+          set({ user: freshUser, role: freshUser.role });
+          return freshUser;
+        } catch {
+          // 401 / 403 means the token is invalid or account deactivated
+          logout();
+          return null;
+        }
       },
 
       fetchCurrentUser: async () => {
         try {
           const { data } = await api.get('/auth/me');
-          set({ user: data.user, role: data.user.role });
-          return data.user;
+          const freshUser = data.user;
+          set({ user: freshUser, role: freshUser.role });
+          return freshUser;
         } catch {
           get().logout();
           return null;

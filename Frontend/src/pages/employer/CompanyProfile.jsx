@@ -76,7 +76,8 @@ export default function CompanyProfile() {
       }
 
       if (res.data?.user) {
-        setUser({ ...user, name: res.data.user.name, email: res.data.user.email });
+        const updatedUser = res.data.user;
+        setUser({ ...user, name: updatedUser.name, email: updatedUser.email });
       }
 
       setSuccess(true);

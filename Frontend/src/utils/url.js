@@ -2,36 +2,57 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const API_BASE = API_URL.replace(/\/api$/, '');
 
 /**
- * Resolve file/storage URLs:
- * - Cloudinary https:// URLs → returned as-is
- * - /api/files/xxx → prepended with backend base + ?token= for auth
- * - Legacy /uploads/xxx → rewritten to /api/files/xxx
+ * Get the current auth token.
+ * Reads from authStore when possible (avoids coupling to Zustand internals),
+ * falls back to direct localStorage parse.
  */
-export function getStorageUrl(path) {
-  if (!path) return '';
+function getToken() {
+  try {
+    // Prefer authStore.getState() — avoids reading Zustand's internal storage shape
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { default: useAuthStore } = require('../store/authStore');
+    return useAuthStore.getState().token || '';
+  } catch {
+    // Fallback: read from persisted state directly
+    try {
+      const stored = JSON.parse(localStorage.getItem('hirehub-auth') || '{}');
+      return stored?.state?.token || '';
+    } catch {
+      return '';
+    }
+  }
+}
 
-  // Already a full URL (Cloudinary, etc.)
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
+/**
+ * Resolve file/storage URLs:
+ * - Full https:// URLs (Cloudinary, R2, etc.) → returned as-is
+ * - /api/files/xxx  → prepend backend base URL
+ * - /uploads/xxx    → rewrite to /api/files/xxx
+ * - bare filename   → prepend /api/files/
+ */
+export function getStorageUrl(filePath) {
+  if (!filePath) return '';
+
+  // Already a full URL (Cloudinary / any CDN)
+  if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+    return filePath;
   }
 
-  // Get token for authenticated file access
-  const stored = JSON.parse(localStorage.getItem('hirehub-auth') || '{}');
-  const token = stored?.state?.token || '';
+  const token = getToken();
+  const tokenParam = token ? `?token=${token}` : '';
 
-  // Legacy /uploads/ path → rewrite
-  if (path.startsWith('/uploads/')) {
-    const filename = path.replace('/uploads/', '');
-    return `${API_URL}/files/${filename}?token=${token}`;
+  // Legacy /uploads/xxx  → rewrite to /api/files/xxx
+  if (filePath.startsWith('/uploads/')) {
+    const filename = filePath.replace('/uploads/', '');
+    return `${API_BASE}/api/files/${encodeURIComponent(filename)}${tokenParam}`;
   }
 
-  // Already an API path
-  if (path.startsWith('/api/files/')) {
-    const separator = path.includes('?') ? '&' : '?';
-    return `${API_BASE}${path}${separator}token=${token}`;
+  // Already an /api/files/xxx path
+  if (filePath.startsWith('/api/files/')) {
+    const sep = filePath.includes('?') ? '&' : '?';
+    return `${API_BASE}${filePath}${token ? `${sep}token=${token}` : ''}`;
   }
 
-  // Fallback: prepend API base
-  const separator = path.includes('?') ? '&' : '?';
-  return `${API_URL}/files/${path}${separator}token=${token}`;
+  // Bare filename  → prepend API files route
+  return `${API_BASE}/api/files/${encodeURIComponent(filePath)}${tokenParam}`;
 }

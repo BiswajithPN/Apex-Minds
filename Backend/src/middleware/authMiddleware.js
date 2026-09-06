@@ -6,10 +6,10 @@ const { sendError } = require('../utils/apiResponse');
 const protect = async (req, res, next) => {
   let token;
 
+  // SEC-06: Only accept token from Authorization header — never from query string
+  // (query string tokens appear in server logs, browser history, and Referer headers)
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
-  } else if (req.query && req.query.token) {
-    token = req.query.token;
   }
 
   if (!token) {

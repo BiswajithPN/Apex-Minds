@@ -21,7 +21,7 @@ export default function CandidateProfile() {
   const loadCandidate = async () => {
     try {
       const { data } = await api.get(`/users/${candidateId}`);
-      setCandidate(data.user || data);
+      setCandidate(data?.user ?? data);
     } catch {
       // Error handling
     } finally {

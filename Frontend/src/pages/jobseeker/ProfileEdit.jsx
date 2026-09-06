@@ -62,8 +62,9 @@ export default function ProfileEdit() {
         certifications,
       };
       const { data } = await api.put('/users/profile', payload);
-      if (data.user) {
-        setUser({ ...user, ...data.user, name: formData.name });
+      const updatedUser = data?.user;
+      if (updatedUser) {
+        setUser({ ...user, ...updatedUser, name: formData.name });
       } else {
         setUser({ ...user, name: formData.name });
       }

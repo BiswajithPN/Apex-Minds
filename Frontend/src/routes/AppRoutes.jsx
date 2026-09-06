@@ -26,6 +26,7 @@ const CompanyProfile   = lazy(() => import('../pages/employer/CompanyProfile'));
 const PostJob          = lazy(() => import('../pages/employer/PostJob'));
 const ManageJobs       = lazy(() => import('../pages/employer/ManageJobs'));
 const Applicants       = lazy(() => import('../pages/employer/Applicants'));
+const AllApplicants    = lazy(() => import('../pages/employer/AllApplicants'));
 const CandidateProfile = lazy(() => import('../pages/employer/CandidateProfile'));
 const CandidateAnalysis = lazy(() => import('../pages/employer/CandidateAnalysis'));
 
@@ -100,6 +101,7 @@ export default function AppRoutes() {
           <Route path="company" element={<CompanyProfile />} />
           <Route path="post-job" element={<PostJob />} />
           <Route path="jobs" element={<ManageJobs />} />
+          <Route path="applicants" element={<AllApplicants />} />
           <Route path="jobs/:id/applicants" element={<Applicants />} />
           <Route path="jobs/:jobId/applicants/:applicationId/analysis" element={<CandidateAnalysis />} />
           <Route path="applications/:applicationId/analysis" element={<CandidateAnalysis />} />

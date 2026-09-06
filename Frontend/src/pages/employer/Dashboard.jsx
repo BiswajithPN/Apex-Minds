@@ -36,7 +36,7 @@ export default function EmployerDashboard() {
         api.get('/jobs/employer/mine?limit=5'),
       ]);
       if (statsRes.status === 'fulfilled') setStats(statsRes.value.data);
-      if (jobsRes.status === 'fulfilled') setRecentJobs(jobsRes.value.data.jobs || []);
+      if (jobsRes.status === 'fulfilled') setRecentJobs(jobsRes.value.data?.jobs || jobsRes.value.data?.data?.jobs || []);
     } catch {
       // Use defaults
     } finally {

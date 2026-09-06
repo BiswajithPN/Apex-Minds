@@ -38,6 +38,7 @@ const jobSeekerProfileSchema = new mongoose.Schema(
     experience: { type: String, default: '' },
     education: { type: String, default: '' },
     resume_url: { type: String, default: '' },
+    avatar: { type: String, default: '' },
     resume_text: {
       type: String,
       select: false, // Excluded from default queries, must use .select('+resume_text')

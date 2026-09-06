@@ -1,16 +1,25 @@
-const sendSuccess = (res, statusCode = 200, data = {}, message = '') => {
+/**
+ * Standard API response helpers.
+ *
+ * sendSuccess spreads the payload directly into the response body so that
+ * frontend code can access fields like response.data.jobs, response.data.token
+ * etc. without an extra .data layer.
+ *
+ * Shape: { success: true, message?, ...payload }
+ */
+const sendSuccess = (res, statusCode = 200, payload = {}, message = '') => {
   return res.status(statusCode).json({
     success: true,
     ...(message ? { message } : {}),
-    ...data,
+    ...payload,
   });
 };
 
-const sendError = (res, statusCode = 400, message = 'An error occurred', detail = null) => {
+const sendError = (res, statusCode = 400, message = 'An error occurred', code = null) => {
   return res.status(statusCode).json({
     success: false,
     message,
-    ...(detail ? { detail } : {}),
+    ...(code ? { code } : {}),
   });
 };
 
