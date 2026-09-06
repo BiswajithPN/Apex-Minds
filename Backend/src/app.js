@@ -41,6 +41,7 @@ if (env.NODE_ENV === 'development') {
 const allowedOrigins = [
   env.FRONTEND_ORIGIN,
   'https://hire-hub-lilac-eight.vercel.app',
+  'https://apex-minds-alpha.vercel.app',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
 ].filter(Boolean);
